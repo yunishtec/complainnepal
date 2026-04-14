@@ -27,32 +27,8 @@ export default function Report() {
 
       {/* Form Section */}
       <section className="py-20 px-6 bg-gray-50/50">
-        <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-16">
-          <div className="lg:col-span-4">
-            <div className="sticky top-32">
-              <h3 className="text-xs font-black uppercase tracking-widest text-gray-900 mb-6 flex items-center gap-3">
-                <span className="w-8 h-[1px] bg-gray-900" />
-                {t('guidelines')}
-              </h3>
-              <ul className="space-y-8">
-                {[
-                  { title: t('beSpecific'), desc: t('beSpecificDesc') },
-                  { title: t('provideEvidence'), desc: t('provideEvidenceDesc') },
-                  { title: t('stayUpdated'), desc: t('stayUpdatedDesc') }
-                ].map((item, i) => (
-                  <li key={i} className="group">
-                    <span className="text-[10px] font-bold text-brand-red mb-1 block">0{i+1}</span>
-                    <h4 className="font-bold text-gray-900 mb-2">{item.title}</h4>
-                    <p className="text-sm text-gray-500 leading-relaxed">{item.desc}</p>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
-          
-          <div className="lg:col-span-8">
-            <ComplaintForm />
-          </div>
+        <div className="max-w-3xl mx-auto">
+          <ComplaintForm />
         </div>
       </section>
     </div>

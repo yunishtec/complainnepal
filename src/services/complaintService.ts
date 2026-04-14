@@ -55,7 +55,6 @@ export const addComment = async (id: number, text: string): Promise<Comment> => 
   return await response.json();
 };
 
-// Note: saveComplaint is now handled by the server's POST /api/complaints endpoint
 export const saveComplaint = async (formData: FormData) => {
   const response = await fetch(`${API_BASE}/complaints`, {
     method: 'POST',
@@ -64,7 +63,8 @@ export const saveComplaint = async (formData: FormData) => {
 
   if (!response.ok) {
     const errorData = await response.json();
-    throw new Error(errorData.error || 'Failed to submit');
+    // FastAPI returns errors in 'detail' field
+    throw new Error(errorData.detail || errorData.error || 'Failed to submit report');
   }
 
   return await response.json();

@@ -3,6 +3,8 @@ import Home from './pages/Home';
 import Report from './pages/Report';
 import Success from './pages/Success';
 import Feed from './pages/Feed';
+import PrivacyPolicy from './pages/PrivacyPolicy';
+import TermsOfService from './pages/TermsOfService';
 import { MapPin } from 'lucide-react';
 import { useLanguage } from './context/LanguageContext';
 
@@ -15,9 +17,14 @@ export default function App() {
         {/* Navigation */}
         <nav className="bg-white/80 backdrop-blur-md sticky top-0 z-50 border-b border-gray-100">
           <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
-            <Link to="/" className="flex items-center gap-1 group">
-              <span className="text-xl font-black tracking-tighter text-gray-900 uppercase transition-transform group-hover:scale-105">
-                Complaine<span style={{ color: '#DC143C' }}>Nepal.</span>
+            <Link to="/" className="flex items-center gap-1.5 group">
+              <img 
+                src="/images/logo2.png" 
+                alt="ComplaineNepal" 
+                className="h-10 w-auto object-contain transition-transform group-hover:scale-105"
+              />
+              <span className="text-xl font-black tracking-tighter uppercase transition-transform group-hover:scale-105">
+                <span style={{ color: '#003893' }}>COMPLAINE</span> <span style={{ color: '#DC143C' }}>NEPAL.</span>
               </span>
             </Link>
             
@@ -73,26 +80,10 @@ export default function App() {
             <Route path="/feed" element={<Feed />} />
             <Route path="/report" element={<Report />} />
             <Route path="/success" element={<Success />} />
+            <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+            <Route path="/terms-of-service" element={<TermsOfService />} />
           </Routes>
         </main>
-
-        {/* Footer */}
-        <footer className="bg-white py-12 px-6 border-t border-gray-100">
-          <div className="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-8">
-            <div className="flex items-center gap-2">
-              <MapPin className="text-red-600 w-5 h-5" />
-              <span className="font-bold text-gray-900">ComplaineNepal</span>
-            </div>
-            <p className="text-sm text-gray-500">
-              © 2026 ComplaineNepal. {t('builtForNepal')}
-            </p>
-            <div className="flex gap-6">
-              <a href="#" className="text-sm text-gray-400 hover:text-red-600">{t('privacy')}</a>
-              <a href="#" className="hover:text-red-600 text-sm text-gray-400 transition-colors">{t('terms')}</a>
-              <a href="#" className="text-sm text-gray-400 hover:text-red-600">{t('contact')}</a>
-            </div>
-          </div>
-        </footer>
       </div>
     </Router>
   );

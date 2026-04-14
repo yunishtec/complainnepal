@@ -63,7 +63,7 @@ export default function ComplaintForm() {
       navigate('/success', { state: { mediaUrl: result.mediaUrl, category: formData.category } });
     } catch (error) {
       console.error("Submission error:", error);
-      alert("Something went wrong. Please try again.");
+      alert(error instanceof Error ? error.message : "Something went wrong. Please try again.");
     } finally {
       setLoading(false);
     }

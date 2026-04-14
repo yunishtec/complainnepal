@@ -80,7 +80,7 @@ const translations: Record<Language, Record<string, string>> = {
     getStarted: 'सुरु गर्नुहोस्',
     heroTitle: 'म नागरिक',
     heroSubtitle: 'रिपोर्टर',
-    letsReport: 'रिपोर्ट गरौं',
+    letsReport: 'रिपोर्ट',
     allYour: 'तपाईंका सबै',
     civicNeeds: 'नागरिक आवश्यकताहरू',
     reportTitle1: 'तपाईंका',
