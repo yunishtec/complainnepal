@@ -1,3 +1,5 @@
+const API_BASE = import.meta.env.VITE_API_URL || '/api';
+
 export interface Comment {
   id: number;
   complaintId: number;
@@ -20,7 +22,7 @@ export interface Complaint {
 
 export const fetchRecentComplaints = async (): Promise<Complaint[]> => {
   try {
-    const response = await fetch('/api/complaints');
+    const response = await fetch(`${API_BASE}/complaints`);
     if (!response.ok) throw new Error('Failed to fetch complaints');
     return await response.json();
   } catch (error) {
@@ -30,7 +32,7 @@ export const fetchRecentComplaints = async (): Promise<Complaint[]> => {
 };
 
 export const upvoteComplaint = async (id: number): Promise<{ upvotes: number }> => {
-  const response = await fetch(`/api/complaints/${id}/upvote`, {
+  const response = await fetch(`${API_BASE}/complaints/${id}/upvote`, {
     method: 'POST',
   });
   if (!response.ok) throw new Error('Failed to upvote');
@@ -38,13 +40,13 @@ export const upvoteComplaint = async (id: number): Promise<{ upvotes: number }> 
 };
 
 export const fetchComments = async (id: number): Promise<Comment[]> => {
-  const response = await fetch(`/api/complaints/${id}/comments`);
+  const response = await fetch(`${API_BASE}/complaints/${id}/comments`);
   if (!response.ok) throw new Error('Failed to fetch comments');
   return await response.json();
 };
 
 export const addComment = async (id: number, text: string): Promise<Comment> => {
-  const response = await fetch(`/api/complaints/${id}/comments`, {
+  const response = await fetch(`${API_BASE}/complaints/${id}/comments`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ text }),
@@ -54,9 +56,8 @@ export const addComment = async (id: number, text: string): Promise<Comment> => 
 };
 
 // Note: saveComplaint is now handled by the server's POST /api/complaints endpoint
-// but we can keep a wrapper here if needed for consistency.
 export const saveComplaint = async (formData: FormData) => {
-  const response = await fetch('/api/complaints', {
+  const response = await fetch(`${API_BASE}/complaints`, {
     method: 'POST',
     body: formData,
   });
