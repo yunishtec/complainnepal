@@ -91,7 +91,7 @@ export default function ComplaintCard({ complaint }: ComplaintCardProps) {
       animate={{ opacity: 1, y: 0 }}
       className="bg-white rounded-3xl overflow-hidden shadow-sm border border-gray-100 hover:shadow-md transition-all mb-6"
     >
-      <img src={complaint.mediaUrl} alt={complaint.title} className="w-full h-64 object-cover" />
+      <img src={complaint.mediaUrl} alt={complaint.title} className="w-full h-48 object-cover" />
       
       <div className="p-6">
         <div className="flex items-center gap-2 mb-3">
