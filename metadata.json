@@ -1,0 +1,8 @@
+{
+  "name": "ComplaineNepal",
+  "description": "A civic issue reporting platform for Nepal. Report local infrastructure and civic issues directly to authorities.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ]
+}

@@ -1,0 +1,14 @@
+fastapi
+uvicorn
+sqlalchemy
+pydantic
+pydantic-settings
+python-multipart
+cloudinary
+sendgrid
+python-dotenv
+psycopg2-binary
+aiosqlite
+jinja2
+python-jose[cryptography]
+passlib[bcrypt]
