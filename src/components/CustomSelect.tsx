@@ -37,15 +37,15 @@ export default function CustomSelect({ options, value, onChange, className = '',
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className={`w-full flex items-center justify-between py-4 transition-all outline-none ${
+        className={`w-full flex items-center justify-between py-2 transition-all outline-none ${
           showBorder ? (isOpen ? 'border-b-2 border-brand-red' : 'border-b-2 border-gray-100') : 'border-none'
         } ${isNe ? 'font-nepali' : 'font-medium'}`}
       >
-        <div className="flex items-center gap-2 text-lg">
+        <div className="flex items-center gap-2 text-base">
           {selectedOption.icon && <span>{selectedOption.icon}</span>}
           <span className="text-gray-900">{selectedOption.label}</span>
         </div>
-        <ChevronDown className={`w-5 h-5 text-gray-400 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} />
+        <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} />
       </button>
 
       <AnimatePresence>
@@ -56,7 +56,7 @@ export default function CustomSelect({ options, value, onChange, className = '',
             exit={{ opacity: 0, y: 10 }}
             className="absolute z-50 w-full mt-2 bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden"
           >
-            <div className="py-2">
+            <div className="py-1">
               {options.map((option) => (
                 <button
                   key={option.id}
@@ -65,12 +65,12 @@ export default function CustomSelect({ options, value, onChange, className = '',
                     onChange(option.id);
                     setIsOpen(false);
                   }}
-                  className={`w-full flex items-center gap-3 px-6 py-4 text-left transition-colors hover:bg-gray-50 ${
+                  className={`w-full flex items-center gap-3 px-4 py-2.5 text-left transition-colors hover:bg-gray-50 ${
                     value === option.id ? 'bg-brand-red/5 text-brand-red font-bold' : 'text-gray-700'
                   } ${isNe ? 'font-nepali' : 'font-medium'}`}
                 >
-                  {option.icon && <span className="text-xl">{option.icon}</span>}
-                  <span className="text-lg">{option.label}</span>
+                  {option.icon && <span className="text-base">{option.icon}</span>}
+                  <span className="text-sm">{option.label}</span>
                 </button>
               ))}
             </div>
