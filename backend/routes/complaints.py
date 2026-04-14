@@ -17,40 +17,48 @@ async def create_complaint(
     file: UploadFile = File(...),
     db: Session = Depends(get_db)
 ):
-    # 1. Upload media to Cloudinary
-    content = await file.read()
-    media_url = cloudinary_service.upload_media(content)
-    
-    if not media_url:
-        raise HTTPException(status_code=500, detail="Failed to upload media")
+    try:
+        # 1. Upload media to Cloudinary
+        content = await file.read()
+        media_url = cloudinary_service.upload_media(content)
+        
+        if not media_url:
+            raise HTTPException(status_code=500, detail="Cloudinary upload failed. Check your API keys.")
 
-    # 2. Store in DB
-    db_complaint = models.Complaint(
-        title=title,
-        description=description,
-        category=category,
-        location=location,
-        media_url=media_url
-    )
-    db.add(db_complaint)
-    db.commit()
-    db.refresh(db_complaint)
+        # 2. Store in DB
+        db_complaint = models.Complaint(
+            title=title,
+            description=description,
+            category=category,
+            location=location,
+            media_url=media_url
+        )
+        db.add(db_complaint)
+        db.commit()
+        db.refresh(db_complaint)
 
-    # 3. Trigger email service
-    authority_email = category_mapper.get_authority_email(category)
-    email_service.send_complaint_email(authority_email, {
-        "title": title,
-        "category": category,
-        "location": location,
-        "description": description,
-        "media_url": media_url
-    })
+        # 3. Trigger email service
+        try:
+            authority_email = category_mapper.get_authority_email(category)
+            email_service.send_complaint_email(authority_email, {
+                "title": title,
+                "category": category,
+                "location": location,
+                "description": description,
+                "media_url": media_url
+            })
+        except Exception as e:
+            print(f"Email failed but complaint saved: {e}")
 
-    return {"message": "Complaint submitted successfully", "id": db_complaint.id, "media_url": media_url}
+        return {"message": "Complaint submitted successfully", "id": db_complaint.id, "mediaUrl": media_url}
+    except HTTPException as e:
+        raise e
+    except Exception as e:
+        print(f"Backend Error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("", response_model=List[schemas.Complaint])
 def get_complaints(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
-    # Calculate comment count for each complaint
     results = db.query(
         models.Complaint,
         func.count(models.Comment.id).label("comment_count")
@@ -79,6 +87,11 @@ def get_comments(id: int, db: Session = Depends(get_db)):
 
 @router.post("/{id}/comments", response_model=schemas.Comment)
 def add_comment(id: int, comment: schemas.CommentCreate, db: Session = Depends(get_db)):
+    # Limit to 3 comments per complaint
+    current_count = db.query(models.Comment).filter(models.Comment.complaint_id == id).count()
+    if current_count >= 3:
+        raise HTTPException(status_code=400, detail="Maximum 3 comments allowed per report.")
+
     db_comment = models.Comment(complaint_id=id, text=comment.text)
     db.add(db_comment)
     db.commit()

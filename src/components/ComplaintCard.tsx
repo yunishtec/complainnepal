@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { MapPin, Clock, ThumbsUp, MessageCircle, Share2, Send, X } from 'lucide-react';
+import { MapPin, Clock, ArrowBigUp, MessageCircle, Share2, Send } from 'lucide-react';
 import { Complaint, upvoteComplaint, addComment, fetchComments, Comment } from '../services/complaintService';
 
 interface ComplaintCardProps {
@@ -13,11 +13,27 @@ export default function ComplaintCard({ complaint }: ComplaintCardProps) {
   const [comments, setComments] = useState<Comment[]>([]);
   const [newComment, setNewComment] = useState('');
   const [loadingComments, setLoadingComments] = useState(false);
+  const [hasUpvoted, setHasUpvoted] = useState(false);
+
+  useEffect(() => {
+    // Check local storage to see if user already upvoted this complaint
+    const upvotedIds = JSON.parse(localStorage.getItem('upvoted_complaints') || '[]');
+    if (upvotedIds.includes(complaint.id)) {
+      setHasUpvoted(true);
+    }
+  }, [complaint.id]);
 
   const handleUpvote = async () => {
+    if (hasUpvoted) return;
+
     try {
       const result = await upvoteComplaint(complaint.id!);
       setUpvotes(result.upvotes);
+      setHasUpvoted(true);
+      
+      // Save to local storage
+      const upvotedIds = JSON.parse(localStorage.getItem('upvoted_complaints') || '[]');
+      localStorage.setItem('upvoted_complaints', JSON.stringify([...upvotedIds, complaint.id]));
     } catch (error) {
       console.error("Upvote failed:", error);
     }
@@ -42,12 +58,17 @@ export default function ComplaintCard({ complaint }: ComplaintCardProps) {
     e.preventDefault();
     if (!newComment.trim()) return;
 
+    if (comments.length >= 3) {
+      alert("Maximum 3 comments allowed per complaint.");
+      return;
+    }
+
     try {
       const comment = await addComment(complaint.id!, newComment);
       setComments([comment, ...comments]);
       setNewComment('');
-    } catch (error) {
-      console.error("Add comment failed:", error);
+    } catch (error: any) {
+      alert(error.message || "Failed to add comment.");
     }
   };
 
@@ -94,10 +115,11 @@ export default function ComplaintCard({ complaint }: ComplaintCardProps) {
           <div className="flex items-center gap-4">
             <button 
               onClick={handleUpvote}
-              className="flex items-center gap-1.5 text-gray-500 hover:text-brand-red transition-colors group"
+              disabled={hasUpvoted}
+              className={`flex items-center gap-1.5 transition-colors group ${hasUpvoted ? 'text-brand-red cursor-default' : 'text-gray-500 hover:text-brand-red'}`}
             >
-              <div className="p-2 rounded-full group-hover:bg-red-50 transition-colors">
-                <ThumbsUp className={`w-5 h-5 ${upvotes > complaint.upvotes ? 'fill-brand-red text-brand-red' : ''}`} />
+              <div className={`p-2 rounded-full transition-colors ${hasUpvoted ? 'bg-red-50' : 'group-hover:bg-red-50'}`}>
+                <ArrowBigUp className={`w-6 h-6 ${hasUpvoted ? 'fill-brand-red' : ''}`} />
               </div>
               <span className="text-sm font-bold">{upvotes}</span>
             </button>
@@ -109,7 +131,7 @@ export default function ComplaintCard({ complaint }: ComplaintCardProps) {
               <div className="p-2 rounded-full group-hover:bg-blue-50 transition-colors">
                 <MessageCircle className="w-5 h-5" />
               </div>
-              <span className="text-sm font-bold">{complaint.commentCount + (comments.length - (loadingComments ? 0 : 0))}</span>
+              <span className="text-sm font-bold">{comments.length > 0 ? comments.length : (complaint.commentCount || 0)}</span>
             </button>
             
             <button 
@@ -139,14 +161,16 @@ export default function ComplaintCard({ complaint }: ComplaintCardProps) {
                 <form onSubmit={handleAddComment} className="flex gap-2 mb-6">
                   <input
                     type="text"
-                    placeholder="Add a comment..."
-                    className="flex-grow px-4 py-2 rounded-xl border border-gray-200 focus:ring-2 focus:ring-brand-red outline-none text-sm"
+                    disabled={comments.length >= 3}
+                    placeholder={comments.length >= 3 ? "Comment limit reached (3 max)" : "Add a comment..."}
+                    className="flex-grow px-4 py-2 rounded-xl border border-gray-200 focus:ring-2 focus:ring-brand-red outline-none text-sm disabled:bg-gray-50 disabled:placeholder:text-gray-300"
                     value={newComment}
                     onChange={e => setNewComment(e.target.value)}
                   />
                   <button 
                     type="submit"
-                    className="p-2 bg-brand-red text-white rounded-xl hover:bg-brand-red/90 transition-colors"
+                    disabled={comments.length >= 3 || !newComment.trim()}
+                    className="p-2 bg-brand-red text-white rounded-xl hover:bg-brand-red/90 transition-colors disabled:bg-gray-200"
                   >
                     <Send className="w-4 h-4" />
                   </button>
