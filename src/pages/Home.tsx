@@ -157,9 +157,9 @@ const MobileFeedCard = ({ complaint, isLast, lastRef }: { complaint: Complaint, 
            // (Simple enough for mobile tap)
            navigate(`/complaint/${complaint.id}`)
         }}
-        className="relative aspect-square md:aspect-[4/5] bg-black overflow-hidden cursor-pointer mx-4 rounded-2xl"
+        className="relative aspect-square md:aspect-[4/5] bg-black overflow-hidden cursor-pointer mx-4 rounded-2xl select-none"
       >
-         <div className="flex h-full overflow-x-auto snap-x snap-mandatory no-scrollbar cursor-grab active:cursor-grabbing">
+         <div className="flex h-full overflow-x-auto snap-x snap-mandatory no-scrollbar cursor-grab active:cursor-grabbing select-none">
            {mediaUrls.length > 0 ? mediaUrls.map((url, idx) => {
              const isVideo = url.match(/\.(mp4|webm|ogg|mov)$|^.*cloudinary.*\/video\/upload\/.*$/i);
              const finalUrl = url.startsWith('http') ? url : '/images/portrait.png';
@@ -181,7 +181,7 @@ const MobileFeedCard = ({ complaint, isLast, lastRef }: { complaint: Complaint, 
                       <video 
                         ref={el => { if (el) videoRefs.current.set(url, el); }}
                         src={finalUrl} 
-                        className="w-full h-full object-contain relative z-10" 
+                        className="w-full h-full object-contain relative z-10 pointer-events-none" 
                         muted={isMuted}
                         loop 
                         playsInline 
@@ -200,7 +200,7 @@ const MobileFeedCard = ({ complaint, isLast, lastRef }: { complaint: Complaint, 
                        <img 
                         src={finalUrl} 
                         alt={`Media ${idx}`}
-                        className="w-full h-full object-contain relative z-10" 
+                        className="w-full h-full object-contain relative z-10 pointer-events-none select-none" 
                         crossOrigin="anonymous"
                         onError={(e) => { (e.target as HTMLImageElement).src = '/images/portrait.png'; }}
                        />
