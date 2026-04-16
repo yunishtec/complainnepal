@@ -9,7 +9,7 @@ import ComplaintCard from '../components/ComplaintCard';
 // 📱 COMPONENT: Mobile Feed Card (with Swiping & Auto-play)
 const MobileFeedCard = ({ complaint, isLast, lastRef }: { complaint: Complaint, isLast: boolean, lastRef: any }) => {
   const navigate = useNavigate();
-  const { language } = useLanguage();
+  const { language, t } = useLanguage();
   const mediaUrls = (complaint.mediaUrl || "").split(',').map(u => u.trim()).filter(Boolean);
   const videoRefs = useRef<Map<string, HTMLVideoElement>>(new Map());
   const [isMuted, setIsMuted] = useState(true);
