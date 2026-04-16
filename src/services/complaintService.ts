@@ -20,9 +20,13 @@ export interface Complaint {
   createdAt: string;
 }
 
-export const fetchComplaints = async (skip: number = 0, limit: number = 10): Promise<Complaint[]> => {
+export const fetchComplaints = async (skip: number = 0, limit: number = 10, category?: string): Promise<Complaint[]> => {
   try {
-    const response = await fetch(`${API_BASE}/complaints?skip=${skip}&limit=${limit}`);
+    let url = `${API_BASE}/complaints?skip=${skip}&limit=${limit}`;
+    if (category && category !== 'All' && category !== 'सबै') {
+      url += `&category=${encodeURIComponent(category)}`;
+    }
+    const response = await fetch(url);
     if (!response.ok) throw new Error('Failed to fetch complaints');
     return await response.json();
   } catch (error) {

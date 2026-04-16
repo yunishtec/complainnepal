@@ -1,9 +1,9 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { motion } from 'motion/react';
-import { Loader2, PlusCircle, List, ArrowUpRight, TrendingUp, LayoutGrid, User, MapPin } from 'lucide-react';
+import { Loader2, PlusCircle, List, ArrowUpRight, TrendingUp, LayoutGrid, User, MapPin, Volume2, VolumeX, MessageSquare, Share2, Send, ArrowRight } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
-import { fetchComplaints, Complaint } from '../services/complaintService';
+import { fetchComplaints, Complaint, fetchComments, addComment, upvoteComplaint, unvoteComplaint, Comment } from '../services/complaintService';
 import ComplaintCard from '../components/ComplaintCard';
 
 // 📱 COMPONENT: Mobile Feed Card (with Swiping & Auto-play)
@@ -12,6 +12,23 @@ const MobileFeedCard = ({ complaint, isLast, lastRef }: { complaint: Complaint, 
   const { language } = useLanguage();
   const mediaUrls = (complaint.mediaUrl || "").split(',').map(u => u.trim()).filter(Boolean);
   const videoRefs = useRef<Map<string, HTMLVideoElement>>(new Map());
+  const [isMuted, setIsMuted] = useState(true);
+  const [showComments, setShowComments] = useState(false);
+  const [comments, setComments] = useState<Comment[]>([]);
+  const [newComment, setNewComment] = useState('');
+  const [loadingComments, setLoadingComments] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  // Upvote State
+  const [upvotes, setUpvotes] = useState(complaint.upvotes || 0);
+  const [hasUpvoted, setHasUpvoted] = useState(false);
+
+  useEffect(() => {
+    const upvotedIds = JSON.parse(localStorage.getItem('upvoted_complaints') || '[]').map(Number);
+    if (complaint.id && upvotedIds.includes(Number(complaint.id))) {
+      setHasUpvoted(true);
+    }
+  }, [complaint.id]);
 
   useEffect(() => {
     const options = { threshold: 0.6 };
@@ -30,13 +47,84 @@ const MobileFeedCard = ({ complaint, isLast, lastRef }: { complaint: Complaint, 
     return () => observer.disconnect();
   }, [complaint.mediaUrl]);
 
+  const toggleComments = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!showComments) {
+      setShowComments(true);
+      setLoadingComments(true);
+      try {
+        const data = await fetchComments(Number(complaint.id));
+        setComments(data);
+      } catch (err) { console.error(err); }
+      finally { setLoadingComments(false); }
+    } else {
+      setShowComments(false);
+    }
+  };
+
+  const handlePostComment = async (e: React.FormEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!newComment.trim() || !complaint.id || isSubmitting) return;
+
+    setIsSubmitting(true);
+    try {
+      const added = await addComment(Number(complaint.id), newComment);
+      setComments(prev => [added, ...prev]);
+      setNewComment('');
+    } catch (err) { console.error(err); }
+    finally { setIsSubmitting(false); }
+  };
+
+  const handleUpvote = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!complaint.id) return;
+    const complaintId = Number(complaint.id);
+    const upvotedIds = JSON.parse(localStorage.getItem('upvoted_complaints') || '[]').map(Number);
+
+    try {
+      if (hasUpvoted) {
+        setHasUpvoted(false);
+        const res = await unvoteComplaint(complaintId);
+        setUpvotes(res.upvotes);
+        localStorage.setItem('upvoted_complaints', JSON.stringify(upvotedIds.filter(id => id !== complaintId)));
+      } else {
+        setHasUpvoted(true);
+        const res = await upvoteComplaint(complaintId);
+        setUpvotes(res.upvotes);
+        localStorage.setItem('upvoted_complaints', JSON.stringify([...upvotedIds, complaintId]));
+      }
+    } catch (err) { console.error(err); }
+  };
+
+  const handleShare = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!complaint) return;
+    const shareData = {
+      title: complaint.title,
+      text: `Check out this report on ComplaineNepal: ${complaint.title}`,
+      url: `${window.location.origin}/complaint/${complaint.id}`,
+    };
+    try {
+      if (navigator.share) {
+        await navigator.share(shareData);
+      } else {
+        await navigator.clipboard.writeText(shareData.url);
+        alert("Link copied to clipboard!");
+      }
+    } catch (err) { console.error(err); }
+  };
+
   return (
     <div 
       ref={isLast ? lastRef : null}
-      className="bg-white border-b border-gray-100 pb-8 last:border-0"
+      className="bg-white mb-2 pb-6 shadow-sm last:mb-0"
     >
       {/* Header */}
-      <div className="px-6 py-4 flex items-center justify-between">
+      <div 
+        onClick={() => navigate(`/complaint/${complaint.id}`)}
+        className="px-6 py-4 flex items-center justify-between cursor-pointer active:brightness-95 transition-all"
+      >
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center shrink-0 border border-gray-50 overflow-hidden">
              <User size={20} className="text-gray-400" />
@@ -63,7 +151,14 @@ const MobileFeedCard = ({ complaint, isLast, lastRef }: { complaint: Complaint, 
       </div>
 
       {/* Media Gallery (Swipable) */}
-      <div className="relative aspect-[4/5] bg-gray-50 overflow-hidden">
+      <div 
+        onClick={() => {
+           // Only navigate if they tap and don't drag 
+           // (Simple enough for mobile tap)
+           navigate(`/complaint/${complaint.id}`)
+        }}
+        className="relative aspect-square md:aspect-[4/5] bg-black overflow-hidden cursor-pointer"
+      >
          <div className="flex h-full overflow-x-auto snap-x snap-mandatory no-scrollbar cursor-grab active:cursor-grabbing">
            {mediaUrls.length > 0 ? mediaUrls.map((url, idx) => {
              const isVideo = url.match(/\.(mp4|webm|ogg|mov)$|^.*cloudinary.*\/video\/upload\/.*$/i);
@@ -73,10 +168,10 @@ const MobileFeedCard = ({ complaint, isLast, lastRef }: { complaint: Complaint, 
                <div key={idx} className="min-w-full h-full snap-center relative">
                  {isVideo ? (
                    <video 
-                     ref={el => el && videoRefs.current.set(url, el)}
+                     ref={el => { if (el) videoRefs.current.set(url, el); }}
                      src={finalUrl} 
-                     className="w-full h-full object-cover" 
-                     muted 
+                     className="w-full h-full object-contain" 
+                     muted={isMuted}
                      loop 
                      playsInline 
                      crossOrigin="anonymous"
@@ -85,10 +180,19 @@ const MobileFeedCard = ({ complaint, isLast, lastRef }: { complaint: Complaint, 
                    <img 
                      src={finalUrl} 
                      alt={`Media ${idx}`}
-                     className="w-full h-full object-cover" 
+                     className="w-full h-full object-contain" 
                      crossOrigin="anonymous"
                      onError={(e) => { (e.target as HTMLImageElement).src = '/images/portrait.png'; }}
                    />
+                 )}
+                 {/* Audio Control */}
+                 {isVideo && (
+                    <button 
+                      onClick={(e) => { e.stopPropagation(); setIsMuted(!isMuted); }}
+                      className="absolute bottom-4 right-4 bg-black/40 backdrop-blur-md p-2 rounded-full border border-white/10 text-white z-20 active:scale-90 transition-all font-black text-[8px]"
+                    >
+                       {isMuted ? <VolumeX size={14} /> : <Volume2 size={14} />}
+                    </button>
                  )}
                  
                  {/* Unit counter if multiple */}
@@ -108,24 +212,103 @@ const MobileFeedCard = ({ complaint, isLast, lastRef }: { complaint: Complaint, 
       </div>
 
       {/* Interaction Bar */}
-      <div className="px-6 pt-5 flex items-center justify-between">
+      <div className="px-6 pt-5 flex items-center justify-between border-t border-gray-50/50 mt-2">
          <div className="flex items-center gap-6">
-            <button className="flex items-center gap-2 group text-gray-900">
-               <TrendingUp size={18} className="text-brand-red group-active:scale-125 transition-transform" />
-               <span className="text-[10px] font-black uppercase tracking-widest">{complaint.upvotes}</span>
+            <button 
+              onClick={handleUpvote}
+              className={`flex items-center gap-2 group transition-all ${hasUpvoted ? 'text-brand-red' : 'text-gray-900'}`}
+            >
+               <TrendingUp size={18} className={`${hasUpvoted ? 'animate-pulse' : 'group-active:scale-125'} transition-transform`} />
+               <span className="text-[10px] font-black uppercase tracking-widest">{upvotes}</span>
             </button>
-            <button className="flex items-center gap-2 text-gray-400">
-               <List size={18} />
-               <span className="text-[10px] font-black uppercase tracking-widest">{language === 'ne' ? 'समर्थन' : 'Report detail'}</span>
+            <button 
+              onClick={toggleComments}
+              className={`flex items-center gap-2 transition-colors ${showComments ? 'text-brand-red' : 'text-gray-500'}`}
+            >
+               <MessageSquare size={18} />
+               <span className="text-[10px] font-black uppercase tracking-widest">{language === 'ne' ? 'प्रतिक्रिया' : 'Comment'}</span>
+            </button>
+            <button 
+              onClick={handleShare}
+              className="flex items-center gap-2 text-gray-500 active:text-brand-red transition-colors"
+            >
+               <Share2 size={18} />
+               <span className="text-[10px] font-black uppercase tracking-widest">{language === 'ne' ? 'साझा' : 'Share'}</span>
             </button>
          </div>
-         <button 
-           onClick={() => navigate(`/complaint/${complaint.id}`)}
-           className="px-6 py-2 bg-gray-900 text-white rounded-full text-[9px] font-black uppercase tracking-[0.15em] active:scale-95 transition-all"
-         >
-           View Post
-         </button>
+         <div className="text-[9px] font-black text-gray-300 uppercase tracking-widest opacity-0">Post ID.{complaint.id}</div>
       </div>
+
+      {/* Inline Comments Section */}
+      {showComments && (
+        <motion.div 
+          initial={{ opacity: 0, height: 0 }}
+          animate={{ opacity: 1, height: 'auto' }}
+          className="px-6 pb-4 mt-6 border-t border-gray-50 pt-6"
+          onClick={(e) => {
+             // Stop navigation if clicking here
+             e.stopPropagation();
+          }}
+        >
+          {/* Post a Comment Input */}
+          <form onSubmit={handlePostComment} className="flex items-center gap-3 mb-8">
+             <div className="w-8 h-8 rounded-full bg-brand-red/10 flex items-center justify-center shrink-0">
+                <User size={14} className="text-brand-red" />
+             </div>
+             <div className="flex-grow relative">
+                <input 
+                  type="text" 
+                  value={newComment}
+                  onChange={(e) => setNewComment(e.target.value)}
+                  placeholder={language === 'ne' ? "प्रतिक्रिया लेख्नुहोस्..." : "Add a remark..."}
+                  className="w-full bg-gray-50 border border-gray-100 rounded-full px-5 py-2.5 text-sm focus:outline-none focus:border-brand-red focus:bg-white transition-all pr-12"
+                />
+                <button 
+                  type="submit" 
+                  disabled={!newComment.trim() || isSubmitting}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-brand-red disabled:opacity-30 disabled:grayscale p-1.5"
+                >
+                   {isSubmitting ? <Loader2 size={18} className="animate-spin" /> : <Send size={18} />}
+                </button>
+             </div>
+          </form>
+
+          {/* Comments List */}
+          <div className="space-y-6">
+             {loadingComments ? (
+               <div className="flex items-center justify-center py-4">
+                  <Loader2 className="animate-spin text-gray-200" size={20} />
+               </div>
+             ) : (
+               <>
+                 {comments.length === 0 ? (
+                   <p className="text-[10px] font-bold text-gray-300 uppercase tracking-widest text-center py-4">No citizen remarks yet</p>
+                 ) : (
+                   comments.map(c => (
+                     <div key={c.id} className="flex gap-4 group">
+                        <div className="w-8 h-8 rounded-full bg-gray-50 border border-gray-100 flex items-center justify-center text-[9px] font-black text-gray-300 flex-shrink-0 group-hover:bg-brand-red/5 transition-colors">CP</div>
+                        <div className="flex-grow">
+                           <div className="flex items-center gap-2 mb-1">
+                              <span className="text-[10px] font-black text-gray-900">Citizen #{c.id % 999}</span>
+                              <span className="text-[8px] font-bold text-gray-400 uppercase tracking-tighter">{new Date(c.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                           </div>
+                           <p className="text-xs text-gray-600 font-medium leading-relaxed">{c.text}</p>
+                        </div>
+                     </div>
+                   ))
+                 )}
+               </>
+             )}
+          </div>
+
+          <button 
+            onClick={() => navigate(`/complaint/${complaint.id}`)}
+            className="w-full mt-8 py-3 bg-gray-50 rounded-xl text-[10px] font-black uppercase tracking-widest text-gray-400 flex items-center justify-center gap-2 hover:bg-gray-900 hover:text-white transition-all group"
+          >
+            Open Full Archives <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
+          </button>
+        </motion.div>
+      )}
     </div>
   );
 };
@@ -138,14 +321,20 @@ export default function Home() {
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const [skip, setSkip] = useState(0);
+  const [selectedCategory, setSelectedCategory] = useState('All');
   const observer = useRef<IntersectionObserver | null>(null);
 
-  const loadData = useCallback(async (currentSkip: number, reset: boolean = false) => {
+  const categories = language === 'ne' 
+    ? ['सबै', 'फोहोर', 'सडक', 'पानी', 'बिजुली'] 
+    : ['All', 'Garbage', 'Road', 'Water', 'Electricity'];
+
+  const loadData = useCallback(async (currentSkip: number, reset: boolean = false, categoryOverride?: string) => {
     try {
       if (reset) setLoading(true);
       else setLoadingMore(true);
 
-      const data = await fetchComplaints(currentSkip, 10);
+      const targetCategory = categoryOverride !== undefined ? categoryOverride : selectedCategory;
+      const data = await fetchComplaints(currentSkip, 10, targetCategory);
       
       if (data.length < 10) setHasMore(false);
       else setHasMore(true);
@@ -157,11 +346,17 @@ export default function Home() {
       setLoading(false);
       setLoadingMore(false);
     }
-  }, []);
+  }, [selectedCategory]);
 
   useEffect(() => {
     loadData(0, true);
   }, [loadData]);
+
+  const handleCategoryChange = (cat: string) => {
+    setSelectedCategory(cat);
+    setSkip(0);
+    loadData(0, true, cat);
+  };
 
   const lastElementRef = useCallback((node: HTMLDivElement) => {
     if (loading || loadingMore) return;
@@ -181,7 +376,7 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-mobile-bg md:bg-white overflow-x-hidden">
       {/* 📱 MOBILE DASHBOARD / FEED */}
-      <div className="md:hidden w-full pt-12 pb-24 bg-white">
+      <div className="md:hidden w-full pt-12 pb-24 bg-gray-50/50">
         {/* Header */}
         <div className="px-6 flex items-center justify-between mb-6 pt-4">
           <Link to="/" className="flex items-center gap-1.5 group">
@@ -218,18 +413,22 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Categories / Filter Bar (Optional but nice) */}
+        {/* Categories / Filter Bar */}
         <div className="px-6 mb-8 overflow-x-auto no-scrollbar flex items-center gap-2">
-           {['All', 'Garbage', 'Road', 'Water', 'Electricity'].map((cat) => (
-             <button key={cat} className={`px-5 py-2 rounded-full text-[10px] font-black uppercase tracking-widest whitespace-nowrap border ${cat === 'All' ? 'bg-mobile-accent text-white border-mobile-accent shadow-lg shadow-mobile-accent/20' : 'bg-white text-gray-400 border-gray-100'}`}>
+           {categories.map((cat) => (
+             <button 
+               key={cat} 
+               onClick={() => handleCategoryChange(cat)}
+               className={`px-5 py-2 rounded-full text-[10px] font-black uppercase tracking-widest whitespace-nowrap border transition-all ${cat === selectedCategory ? 'bg-mobile-accent text-white border-mobile-accent shadow-lg shadow-mobile-accent/20' : 'bg-white text-gray-400 border-gray-100'}`}
+             >
                {cat}
              </button>
            ))}
         </div>
 
         {/* Feed Section */}
-        <div className="px-6">
-          <div className="flex items-center justify-between mb-6">
+        <div className="w-full">
+          <div className="flex items-center justify-between mb-6 px-6">
              <h3 className="text-lg font-black text-gray-900 uppercase tracking-tighter">Community Feed</h3>
           </div>
 

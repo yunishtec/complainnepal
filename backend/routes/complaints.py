@@ -78,11 +78,16 @@ async def create_complaint(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("", response_model=List[schemas.Complaint])
-def get_complaints(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
-    results = db.query(
+def get_complaints(skip: int = 0, limit: int = 100, category: str = None, db: Session = Depends(get_db)):
+    query = db.query(
         models.Complaint,
         func.count(models.Comment.id).label("comment_count")
-    ).outerjoin(models.Comment).group_by(models.Complaint.id).order_by(models.Complaint.created_at.desc()).offset(skip).limit(limit).all()
+    ).outerjoin(models.Comment)
+
+    if category and category != 'All' and category != 'सबै':
+        query = query.filter(models.Complaint.category == category)
+
+    results = query.group_by(models.Complaint.id).order_by(models.Complaint.created_at.desc()).offset(skip).limit(limit).all()
     
     complaints = []
     for complaint, comment_count in results:
