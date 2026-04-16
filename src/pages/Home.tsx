@@ -171,7 +171,7 @@ const MobileFeedCard = ({ complaint, isLast, lastRef }: { complaint: Complaint, 
                       {/* Blurred Background Dynamic */}
                       <video 
                         src={finalUrl} 
-                        className="absolute inset-0 w-full h-full object-cover blur-2xl opacity-40 scale-110 pointer-events-none" 
+                        className="absolute inset-0 w-full h-full object-cover blur-2xl opacity-40 scale-110 pointer-events-none select-none" 
                         muted 
                         loop 
                         playsInline 
@@ -181,7 +181,7 @@ const MobileFeedCard = ({ complaint, isLast, lastRef }: { complaint: Complaint, 
                       <video 
                         ref={el => { if (el) videoRefs.current.set(url, el); }}
                         src={finalUrl} 
-                        className="w-full h-full object-contain relative z-10 pointer-events-none" 
+                        className="w-full h-full object-contain relative z-10 pointer-events-none select-none" 
                         muted={isMuted}
                         loop 
                         playsInline 
@@ -193,13 +193,15 @@ const MobileFeedCard = ({ complaint, isLast, lastRef }: { complaint: Complaint, 
                        {/* Blurred Background Dynamic */}
                        <img 
                         src={finalUrl} 
-                        className="absolute inset-0 w-full h-full object-cover blur-2xl opacity-40 scale-110"
+                        draggable="false"
+                        className="absolute inset-0 w-full h-full object-cover blur-2xl opacity-40 scale-110 pointer-events-none select-none"
                         crossOrigin="anonymous"
                        />
                        {/* Sharp Foreground */}
                        <img 
                         src={finalUrl} 
                         alt={`Media ${idx}`}
+                        draggable="false"
                         className="w-full h-full object-contain relative z-10 pointer-events-none select-none" 
                         crossOrigin="anonymous"
                         onError={(e) => { (e.target as HTMLImageElement).src = '/images/portrait.png'; }}
