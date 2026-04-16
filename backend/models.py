@@ -11,7 +11,7 @@ class Complaint(Base):
     description = Column(Text, nullable=False)
     category = Column(String, nullable=False)
     location = Column(String, nullable=False)
-    media_url = Column(Text, nullable=False)
+    media_url = Column(Text, nullable=False) # Comma separated list of URLs
     status = Column(String, default="submitted")
     upvotes = Column(Integer, default=0)
     created_at = Column(DateTime, default=datetime.utcnow)

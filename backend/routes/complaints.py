@@ -14,16 +14,36 @@ async def create_complaint(
     description: str = Form(...),
     category: str = Form(...),
     location: str = Form(...),
-    file: UploadFile = File(...),
+    files: List[UploadFile] = File(...),
     db: Session = Depends(get_db)
 ):
     try:
-        # 1. Upload media to Cloudinary
-        content = await file.read()
-        media_url = cloudinary_service.upload_media(content)
-        
-        if not media_url:
-            raise HTTPException(status_code=500, detail="Cloudinary upload failed. Check your API keys.")
+        # 1. Validation & Multi-file Upload
+        if len(files) > 5:
+            raise HTTPException(status_code=400, detail="Maximum 5 files allowed.")
+
+        uploaded_urls = []
+        for file in files:
+            # Basic size validation (Photo < 5MB, Video < 50MB)
+            content = await file.read()
+            size_mb = len(content) / (1024 * 1024)
+            is_video = file.content_type.startswith("video/")
+            
+            if is_video and size_mb > 300:
+                raise HTTPException(status_code=400, detail=f"Video {file.filename} exceeds the 300MB maximum limit.")
+            if not is_video and size_mb > 5:
+                raise HTTPException(status_code=400, detail=f"Photo {file.filename} exceeds 5MB limit.")
+
+            # Upload with background compression (handled by service)
+            result = cloudinary_service.upload_media(content)
+            if result["url"]:
+                uploaded_urls.append(result["url"])
+            else:
+                raise HTTPException(status_code=500, detail=f"Cloudinary Error: {result['error']}")
+
+        # Combined strings for DB
+        media_urls_str = ",".join(uploaded_urls)
+        print(f"DEBUG: Saving complaint with URLs: {media_urls_str}")
 
         # 2. Store in DB
         db_complaint = models.Complaint(
@@ -31,7 +51,7 @@ async def create_complaint(
             description=description,
             category=category,
             location=location,
-            media_url=media_url
+            media_url=media_urls_str
         )
         db.add(db_complaint)
         db.commit()
@@ -45,12 +65,12 @@ async def create_complaint(
                 "category": category,
                 "location": location,
                 "description": description,
-                "media_url": media_url
+                "media_url": uploaded_urls[0] # Send first image in email
             })
         except Exception as e:
-            print(f"Email failed but complaint saved: {e}")
+            print(f"Email failed: {e}")
 
-        return {"message": "Complaint submitted successfully", "id": db_complaint.id, "mediaUrl": media_url}
+        return {"message": "Complaint submitted", "id": db_complaint.id, "mediaUrl": media_urls_str}
     except HTTPException as e:
         raise e
     except Exception as e:
@@ -62,7 +82,7 @@ def get_complaints(skip: int = 0, limit: int = 100, db: Session = Depends(get_db
     results = db.query(
         models.Complaint,
         func.count(models.Comment.id).label("comment_count")
-    ).outerjoin(models.Comment).group_by(models.Complaint.id).offset(skip).limit(limit).all()
+    ).outerjoin(models.Comment).group_by(models.Complaint.id).order_by(models.Complaint.created_at.desc()).offset(skip).limit(limit).all()
     
     complaints = []
     for complaint, comment_count in results:
@@ -72,13 +92,48 @@ def get_complaints(skip: int = 0, limit: int = 100, db: Session = Depends(get_db
         
     return complaints
 
+@router.get("/{id}", response_model=schemas.Complaint)
+def get_complaint(id: int, db: Session = Depends(get_db)):
+    # Fetch complaint and count its comments
+    result = db.query(
+        models.Complaint,
+        func.count(models.Comment.id).label("comment_count")
+    ).outerjoin(models.Comment).filter(models.Complaint.id == id).group_by(models.Complaint.id).first()
+    
+    if not result:
+        raise HTTPException(status_code=404, detail="Complaint not found")
+    
+    complaint, comment_count = result
+    comp = schemas.Complaint.model_validate(complaint)
+    comp.comment_count = comment_count
+    return comp
+
 @router.post("/{id}/upvote")
 def upvote_complaint(id: int, db: Session = Depends(get_db)):
     db_complaint = db.query(models.Complaint).filter(models.Complaint.id == id).first()
     if not db_complaint:
         raise HTTPException(status_code=404, detail="Complaint not found")
+    
+    # Handle potential NULL values in the database
+    if db_complaint.upvotes is None:
+        db_complaint.upvotes = 0
+        
     db_complaint.upvotes += 1
     db.commit()
+    db.refresh(db_complaint)
+    return {"upvotes": db_complaint.upvotes}
+
+@router.post("/{id}/unvote")
+def unvote_complaint(id: int, db: Session = Depends(get_db)):
+    db_complaint = db.query(models.Complaint).filter(models.Complaint.id == id).first()
+    if not db_complaint:
+        raise HTTPException(status_code=404, detail="Complaint not found")
+    
+    if db_complaint.upvotes is not None and db_complaint.upvotes > 0:
+        db_complaint.upvotes -= 1
+        
+    db.commit()
+    db.refresh(db_complaint)
     return {"upvotes": db_complaint.upvotes}
 
 @router.get("/{id}/comments", response_model=List[schemas.Comment])
@@ -87,10 +142,10 @@ def get_comments(id: int, db: Session = Depends(get_db)):
 
 @router.post("/{id}/comments", response_model=schemas.Comment)
 def add_comment(id: int, comment: schemas.CommentCreate, db: Session = Depends(get_db)):
-    # Limit to 3 comments per complaint
+    # Limit to prevent abuse, but allow a healthy conversation
     current_count = db.query(models.Comment).filter(models.Comment.complaint_id == id).count()
-    if current_count >= 3:
-        raise HTTPException(status_code=400, detail="Maximum 3 comments allowed per report.")
+    if current_count >= 100:
+        raise HTTPException(status_code=400, detail="Maximum discussion limit reached for this report.")
 
     db_comment = models.Comment(complaint_id=id, text=comment.text)
     db.add(db_comment)

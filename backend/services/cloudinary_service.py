@@ -10,8 +10,13 @@ cloudinary.config(
 
 def upload_media(file):
     try:
-        upload_result = cloudinary.uploader.upload(file, folder="complain-nepal")
-        return upload_result.get("secure_url")
+        # resource_type="auto" detects if it's a photo or video
+        upload_result = cloudinary.uploader.upload(
+            file, 
+            folder="complain-nepal",
+            resource_type="auto"
+        )
+        return {"url": upload_result.get("secure_url"), "error": None}
     except Exception as e:
         print(f"Cloudinary upload failed: {e}")
-        return None
+        return {"url": None, "error": str(e)}

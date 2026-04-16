@@ -20,9 +20,9 @@ export interface Complaint {
   createdAt: string;
 }
 
-export const fetchRecentComplaints = async (): Promise<Complaint[]> => {
+export const fetchComplaints = async (skip: number = 0, limit: number = 10): Promise<Complaint[]> => {
   try {
-    const response = await fetch(`${API_BASE}/complaints`);
+    const response = await fetch(`${API_BASE}/complaints?skip=${skip}&limit=${limit}`);
     if (!response.ok) throw new Error('Failed to fetch complaints');
     return await response.json();
   } catch (error) {
@@ -36,6 +36,14 @@ export const upvoteComplaint = async (id: number): Promise<{ upvotes: number }> 
     method: 'POST',
   });
   if (!response.ok) throw new Error('Failed to upvote');
+  return await response.json();
+};
+
+export const unvoteComplaint = async (id: number): Promise<{ upvotes: number }> => {
+  const response = await fetch(`${API_BASE}/complaints/${id}/unvote`, {
+    method: 'POST',
+  });
+  if (!response.ok) throw new Error('Failed to remove upvote');
   return await response.json();
 };
 
@@ -67,5 +75,7 @@ export const saveComplaint = async (formData: FormData) => {
     throw new Error(errorData.detail || errorData.error || 'Failed to submit report');
   }
 
-  return await response.json();
+  const savedData = await response.json();
+  console.log("Report saved successfully:", savedData);
+  return savedData;
 };

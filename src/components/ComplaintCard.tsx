@@ -1,201 +1,128 @@
-import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
-import { MapPin, Clock, ArrowBigUp, MessageCircle, Share2, Send } from 'lucide-react';
-import { Complaint, upvoteComplaint, addComment, fetchComments, Comment } from '../services/complaintService';
+import React from 'react';
+import { motion } from 'motion/react';
+import { MapPin, MessageSquare, ChevronUp, Image as ImageIcon, Film } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Complaint } from '../services/complaintService';
+
+const truncate = (text: string, limit: number) => {
+  if (!text) return "";
+  return text.length > limit ? text.substring(0, limit) + "..." : text;
+};
 
 interface ComplaintCardProps {
   complaint: Complaint;
 }
 
 export default function ComplaintCard({ complaint }: ComplaintCardProps) {
-  const [upvotes, setUpvotes] = useState(complaint.upvotes);
-  const [showComments, setShowComments] = useState(false);
-  const [comments, setComments] = useState<Comment[]>([]);
-  const [newComment, setNewComment] = useState('');
-  const [loadingComments, setLoadingComments] = useState(false);
-  const [hasUpvoted, setHasUpvoted] = useState(false);
+  const navigate = useNavigate();
+  const mediaUrls = (complaint.mediaUrl || "").split(',').map(u => u.trim()).filter(Boolean);
+  const firstMedia = mediaUrls[0] || "";
+  
+  const isCloudinary = firstMedia.includes('cloudinary');
+  const isVideo = firstMedia.match(/\.(mp4|webm|ogg|mov)$|^.*cloudinary.*\/video\/upload\/.*$/i);
 
-  useEffect(() => {
-    // Check local storage to see if user already upvoted this complaint
-    const upvotedIds = JSON.parse(localStorage.getItem('upvoted_complaints') || '[]');
-    if (upvotedIds.includes(complaint.id)) {
-      setHasUpvoted(true);
+  // If it's a Cloudinary video, we can request a static image preview of the first frame
+  const getPreviewUrl = () => {
+    if (isVideo && isCloudinary) {
+      return firstMedia.replace('/video/upload/', '/video/upload/c_fill,h_600,w_1000,so_0/').replace(/\.[^/.]+$/, ".jpg");
     }
-  }, [complaint.id]);
-
-  const handleUpvote = async () => {
-    if (hasUpvoted) return;
-
-    try {
-      const result = await upvoteComplaint(complaint.id!);
-      setUpvotes(result.upvotes);
-      setHasUpvoted(true);
-      
-      // Save to local storage
-      const upvotedIds = JSON.parse(localStorage.getItem('upvoted_complaints') || '[]');
-      localStorage.setItem('upvoted_complaints', JSON.stringify([...upvotedIds, complaint.id]));
-    } catch (error) {
-      console.error("Upvote failed:", error);
-    }
+    return firstMedia;
   };
 
-  const toggleComments = async () => {
-    if (!showComments) {
-      setLoadingComments(true);
-      try {
-        const data = await fetchComments(complaint.id!);
-        setComments(data);
-      } catch (error) {
-        console.error("Fetch comments failed:", error);
-      } finally {
-        setLoadingComments(false);
-      }
-    }
-    setShowComments(!showComments);
-  };
-
-  const handleAddComment = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newComment.trim()) return;
-
-    if (comments.length >= 3) {
-      alert("Maximum 3 comments allowed per complaint.");
-      return;
-    }
-
-    try {
-      const comment = await addComment(complaint.id!, newComment);
-      setComments([comment, ...comments]);
-      setNewComment('');
-    } catch (error: any) {
-      alert(error.message || "Failed to add comment.");
-    }
-  };
-
-  const handleShare = () => {
-    if (navigator.share) {
-      navigator.share({
-        title: complaint.title,
-        text: `Check out this civic issue: ${complaint.title}`,
-        url: window.location.href,
-      });
-    } else {
-      alert("Sharing is not supported on this browser.");
-    }
-  };
+  const previewUrl = getPreviewUrl();
 
   return (
     <motion.div
-      layout
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="bg-white rounded-3xl overflow-hidden shadow-sm border border-gray-100 hover:shadow-md transition-all mb-6"
+      whileHover={{ y: -8, transition: { duration: 0.2 } }}
+      onClick={() => navigate(`/complaint/${complaint.id}`)}
+      className="bg-white rounded-[32px] overflow-hidden shadow-sm border border-gray-100 hover:shadow-[0_40px_80px_rgba(0,0,0,0.1)] transition-all cursor-pointer group mb-4"
     >
-      <img src={complaint.mediaUrl} alt={complaint.title} className="w-full h-48 object-cover" />
+      {/* 🎬 Static Preview Section */}
+      <div className="relative w-full aspect-video bg-gray-100 overflow-hidden">
+        {!previewUrl ? (
+          <div className="w-full h-full flex flex-col items-center justify-center text-gray-300 gap-2">
+            <ImageIcon size={32} strokeWidth={1} />
+            <span className="text-[10px] font-black uppercase tracking-widest">No Media Found</span>
+          </div>
+        ) : (
+          <div className="w-full h-full relative">
+            <img 
+              src={previewUrl} 
+              alt={complaint.title} 
+              className="w-full h-full object-cover grayscale-[0.2] group-hover:grayscale-0 group-hover:scale-105 transition-all duration-700" 
+              loading="lazy" 
+              crossOrigin="anonymous"
+              onError={(e) => {
+                // If the thumbnail conversion fails, try the raw URL
+                if (isVideo) (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1590283603385-17ffb3a7f29f?auto=format&fit=crop&q=80&w=800';
+              }}
+            />
+            
+            {/* Play Indicator Overlay for Videos */}
+            {isVideo && (
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                 <div className="w-12 h-12 bg-white/20 backdrop-blur-xl rounded-full flex items-center justify-center text-white shadow-2xl opacity-0 group-hover:opacity-100 transition-all scale-75 group-hover:scale-100">
+                    <Film size={20} fill="white" />
+                 </div>
+              </div>
+            )}
+
+            {/* Editorial Gradient Overlay */}
+            <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/40 to-transparent opacity-60 group-hover:opacity-80 transition-opacity" />
+
+            {/* Category Badge */}
+            <div className="absolute top-4 left-4 z-10">
+              <span className="px-3 py-1 bg-white/90 backdrop-blur-xl text-gray-900 text-[8px] font-black rounded-full uppercase tracking-widest shadow-lg">
+                {complaint.category}
+              </span>
+            </div>
+            
+            {/* Multiple Indicator */}
+            {mediaUrls.length > 1 && (
+              <div className="absolute top-4 right-4 bg-black/40 backdrop-blur-md px-2.5 py-1 rounded-full border border-white/10">
+                 <span className="text-[8px] font-black text-white uppercase tracking-widest">+{mediaUrls.length - 1} Units</span>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
       
-      <div className="p-6">
-        <div className="flex items-center gap-2 mb-3">
-          <span className="px-3 py-1 bg-red-50 text-brand-red text-xs font-bold rounded-full uppercase tracking-wider">
-            {complaint.category}
-          </span>
-          <span className="text-xs text-gray-400 flex items-center gap-1">
-            <Clock className="w-3 h-3" /> {new Date(complaint.createdAt).toLocaleDateString()}
-          </span>
+      {/* 📝 Content Section */}
+      <div className="p-7">
+        <div className="flex items-center gap-2 mb-4">
+            <div className="flex items-center gap-1.5 text-brand-red">
+              <MapPin size={10} strokeWidth={3} />
+              <span className="text-[9px] font-black uppercase tracking-widest truncate max-w-[120px]">
+                {truncate(complaint.location, 35)}
+              </span>
+            </div>
+           <div className="w-1 h-1 rounded-full bg-gray-200"></div>
+           <span className="text-[8px] font-black uppercase tracking-widest text-gray-400">● {complaint.status}</span>
         </div>
         
-        <h3 className="text-2xl font-bold text-gray-900 mb-2">{complaint.title}</h3>
+        <h3 className="text-xl font-black text-gray-900 uppercase tracking-tight leading-tight mb-3 group-hover:text-brand-red transition-all duration-300">
+          {truncate(complaint.title, 40)}
+        </h3>
         
-        <div className="flex items-center gap-1 text-sm text-gray-500 mb-4">
-          <MapPin className="w-4 h-4" /> {complaint.location}
+        <p className="text-[13px] text-gray-500 font-medium leading-relaxed line-clamp-2 mb-8">
+          {complaint.description}
+        </p>
+        
+        <div className="flex items-center justify-between pt-6 border-t border-gray-50">
+           <div className="flex items-center gap-5 text-gray-400">
+              <div className="flex items-center gap-1.5 group-hover:text-brand-red transition-colors">
+                 <ChevronUp size={18} strokeWidth={3} />
+                 <span className="text-sm font-black">{complaint.upvotes}</span>
+              </div>
+              <div className="flex items-center gap-1.5 group-hover:text-gray-900 transition-colors">
+                 <MessageSquare size={16} />
+                 <span className="text-xs font-black">{complaint.commentCount || 0}</span>
+              </div>
+           </div>
+           <span className="text-[9px] font-black text-gray-200 tracking-[0.2em]">ID.{complaint.id}</span>
         </div>
-        
-        <p className="text-gray-600 mb-6 leading-relaxed">{complaint.description}</p>
-        
-        <div className="flex items-center justify-between pt-4 border-t border-gray-50">
-          <div className="flex items-center gap-4">
-            <button 
-              onClick={handleUpvote}
-              disabled={hasUpvoted}
-              className={`flex items-center gap-1.5 transition-colors group ${hasUpvoted ? 'text-brand-red cursor-default' : 'text-gray-500 hover:text-brand-red'}`}
-            >
-              <div className={`p-2 rounded-full transition-colors ${hasUpvoted ? 'bg-red-50' : 'group-hover:bg-red-50'}`}>
-                <ArrowBigUp className={`w-6 h-6 ${hasUpvoted ? 'fill-brand-red' : ''}`} />
-              </div>
-              <span className="text-sm font-bold">{upvotes}</span>
-            </button>
-            
-            <button 
-              onClick={toggleComments}
-              className="flex items-center gap-1.5 text-gray-500 hover:text-brand-blue transition-colors group"
-            >
-              <div className="p-2 rounded-full group-hover:bg-blue-50 transition-colors">
-                <MessageCircle className="w-5 h-5" />
-              </div>
-              <span className="text-sm font-bold">{comments.length > 0 ? comments.length : (complaint.commentCount || 0)}</span>
-            </button>
-            
-            <button 
-              onClick={handleShare}
-              className="flex items-center gap-1.5 text-gray-500 hover:text-green-600 transition-colors group"
-            >
-              <div className="p-2 rounded-full group-hover:bg-green-50 transition-colors">
-                <Share2 className="w-5 h-5" />
-              </div>
-            </button>
-          </div>
-          
-          <div className="text-xs font-bold text-gray-400 uppercase tracking-widest">
-            ID: {complaint.id}
-          </div>
-        </div>
-
-        <AnimatePresence>
-          {showComments && (
-            <motion.div
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: 'auto', opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              className="overflow-hidden"
-            >
-              <div className="pt-6 mt-6 border-t border-gray-100">
-                <form onSubmit={handleAddComment} className="flex gap-2 mb-6">
-                  <input
-                    type="text"
-                    disabled={comments.length >= 3}
-                    placeholder={comments.length >= 3 ? "Comment limit reached (3 max)" : "Add a comment..."}
-                    className="flex-grow px-4 py-2 rounded-xl border border-gray-200 focus:ring-2 focus:ring-brand-red outline-none text-sm disabled:bg-gray-50 disabled:placeholder:text-gray-300"
-                    value={newComment}
-                    onChange={e => setNewComment(e.target.value)}
-                  />
-                  <button 
-                    type="submit"
-                    disabled={comments.length >= 3 || !newComment.trim()}
-                    className="p-2 bg-brand-red text-white rounded-xl hover:bg-brand-red/90 transition-colors disabled:bg-gray-200"
-                  >
-                    <Send className="w-4 h-4" />
-                  </button>
-                </form>
-
-                <div className="space-y-4 max-h-60 overflow-y-auto pr-2">
-                  {loadingComments ? (
-                    <div className="text-center py-4 text-gray-400 text-sm italic">Loading comments...</div>
-                  ) : comments.length === 0 ? (
-                    <div className="text-center py-4 text-gray-400 text-sm italic">No comments yet. Be the first!</div>
-                  ) : (
-                    comments.map(comment => (
-                      <div key={comment.id} className="bg-gray-50 p-3 rounded-2xl">
-                        <p className="text-sm text-gray-700">{comment.text}</p>
-                        <span className="text-[10px] text-gray-400 mt-1 block">
-                          {new Date(comment.createdAt).toLocaleTimeString()}
-                        </span>
-                      </div>
-                    ))
-                  )}
-                </div>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
       </div>
     </motion.div>
   );

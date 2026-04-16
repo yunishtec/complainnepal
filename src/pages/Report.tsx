@@ -26,8 +26,8 @@ export default function Report() {
       </section>
 
       {/* Form Section */}
-      <section className="py-20 px-6 bg-gray-50/50">
-        <div className="max-w-3xl mx-auto">
+      <section className="py-20 px-4 md:px-0 bg-gray-50/50">
+        <div className="max-w-7xl mx-auto">
           <ComplaintForm />
         </div>
       </section>

@@ -34,9 +34,22 @@ export default function Success() {
         </p>
 
         {mediaUrl && (
-          <div className="mb-12 rounded-[2rem] overflow-hidden border border-gray-100 shadow-2xl shadow-gray-200/50 max-w-sm mx-auto">
-            <img src={mediaUrl} alt="Submitted evidence" className="w-full h-64 object-cover" />
-            <div className="p-4 bg-white text-[10px] font-black text-gray-400 uppercase tracking-[0.3em]">
+          <div className="mb-12 rounded-[2rem] overflow-hidden border border-gray-100 shadow-2xl shadow-gray-200/50 max-w-sm mx-auto bg-gray-50 flex flex-col">
+            <div className="w-full h-64 flex items-center justify-center bg-gray-50">
+              {(() => {
+                const url = typeof mediaUrl === 'string' ? mediaUrl.split(',')[0].trim() : '';
+                if (!url) return <div className="text-gray-300 text-[10px] font-black uppercase">No Preview</div>;
+                
+                const isVideo = url.match(/\.(mp4|webm|ogg|mov)$|^.*cloudinary.*\/video\/upload\/.*$/i);
+                
+                return isVideo ? (
+                  <video src={url} className="w-full h-64 object-cover" controls autoPlay muted loop crossOrigin="anonymous" />
+                ) : (
+                  <img src={url} alt="Submitted evidence" className="w-full h-64 object-cover" crossOrigin="anonymous" />
+                );
+              })()}
+            </div>
+            <div className="p-4 bg-white text-[10px] font-black text-gray-500 uppercase tracking-[0.3em] border-t border-gray-50">
               {t('evidence')}
             </div>
           </div>
