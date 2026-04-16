@@ -10,6 +10,7 @@ import {
   Complaint, fetchComments, addComment, Comment, 
   upvoteComplaint, unvoteComplaint 
 } from '../services/complaintService';
+import { useLanguage } from '../context/LanguageContext';
 
 // --- Helper for Truncation ---
 const truncate = (text: string, limit: number) => {
