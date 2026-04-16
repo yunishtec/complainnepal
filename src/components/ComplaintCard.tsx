@@ -3,6 +3,7 @@ import { motion } from 'motion/react';
 import { MapPin, MessageSquare, ChevronUp, Image as ImageIcon, Film } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Complaint } from '../services/complaintService';
+import { useLanguage } from '../context/LanguageContext';
 
 const truncate = (text: string, limit: number) => {
   if (!text) return "";
@@ -15,6 +16,7 @@ interface ComplaintCardProps {
 
 export default function ComplaintCard({ complaint }: ComplaintCardProps) {
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const mediaUrls = (complaint.mediaUrl || "").split(',').map(u => u.trim()).filter(Boolean);
   const firstMedia = mediaUrls[0] || "";
   
@@ -44,7 +46,7 @@ export default function ComplaintCard({ complaint }: ComplaintCardProps) {
         {!previewUrl ? (
           <div className="w-full h-full flex flex-col items-center justify-center text-gray-300 gap-2">
             <ImageIcon size={32} strokeWidth={1} />
-            <span className="text-[10px] font-black uppercase tracking-widest">No Media Found</span>
+            <span className="text-[10px] font-black uppercase tracking-widest">{t('noMediaFound') || 'No Media Found'}</span>
           </div>
         ) : (
           <div className="w-full h-full relative">
@@ -72,17 +74,16 @@ export default function ComplaintCard({ complaint }: ComplaintCardProps) {
             {/* Editorial Gradient Overlay */}
             <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/40 to-transparent opacity-60 group-hover:opacity-80 transition-opacity" />
 
-            {/* Category Badge */}
             <div className="absolute top-4 left-4 z-10">
               <span className="px-3 py-1 bg-white/90 backdrop-blur-xl text-gray-900 text-[8px] font-black rounded-full uppercase tracking-widest shadow-lg">
-                {complaint.category}
+                {t(complaint.category)}
               </span>
             </div>
             
             {/* Multiple Indicator */}
             {mediaUrls.length > 1 && (
               <div className="absolute top-4 right-4 bg-black/40 backdrop-blur-md px-2.5 py-1 rounded-full border border-white/10">
-                 <span className="text-[8px] font-black text-white uppercase tracking-widest">+{mediaUrls.length - 1} Units</span>
+                 <span className="text-[8px] font-black text-white uppercase tracking-widest">+{mediaUrls.length - 1} {t('units') || 'Units'}</span>
               </div>
             )}
           </div>

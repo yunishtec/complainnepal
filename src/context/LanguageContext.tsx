@@ -113,6 +113,8 @@ const translations: Record<Language, Record<string, string>> = {
     retrievingRecord: 'Retrieving Record',
     profile: 'Profile',
     connectWithUs: 'Connect with us',
+    noMediaFound: 'No Media Found',
+    units: 'Units',
   },
   ne: {
     home: 'गृहपृष्ठ',
@@ -218,6 +220,8 @@ const translations: Record<Language, Record<string, string>> = {
     retrievingRecord: 'रेकर्ड लोड हुँदैछ',
     profile: 'प्रोफाइल',
     connectWithUs: 'हामीसँग जोडिनुहोस्',
+    noMediaFound: 'मिडिया फेला परेन',
+    units: 'एकाइहरू',
   }
 };
 
