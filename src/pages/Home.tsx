@@ -346,8 +346,20 @@ export default function Home() {
   const observer = useRef<IntersectionObserver | null>(null);
 
   const categories = language === 'ne' 
-    ? ['सबै', 'फोहोर', 'सडक', 'पानी', 'बिजुली'] 
-    : ['All', 'Garbage', 'Road', 'Water', 'Electricity'];
+    ? [
+        { id: 'All', label: 'सबै' },
+        { id: 'garbage', label: 'फोहोर' },
+        { id: 'road', label: 'सडक' },
+        { id: 'water', label: 'पानी' },
+        { id: 'electricity', label: 'बिजुली' }
+      ] 
+    : [
+        { id: 'All', label: 'All' },
+        { id: 'garbage', label: 'Garbage' },
+        { id: 'road', label: 'Road' },
+        { id: 'water', label: 'Water' },
+        { id: 'electricity', label: 'Electricity' }
+      ];
 
   const loadData = useCallback(async (currentSkip: number, reset: boolean = false, categoryOverride?: string) => {
     try {
@@ -438,11 +450,11 @@ export default function Home() {
         <div className="px-6 mb-8 overflow-x-auto no-scrollbar flex items-center gap-2">
            {categories.map((cat) => (
              <button 
-               key={cat} 
-               onClick={() => handleCategoryChange(cat)}
-               className={`px-5 py-2 rounded-full text-[10px] font-black uppercase tracking-widest whitespace-nowrap border transition-all ${cat === selectedCategory ? 'bg-mobile-accent text-white border-mobile-accent shadow-lg shadow-mobile-accent/20' : 'bg-white text-gray-400 border-gray-100'}`}
+               key={cat.id} 
+               onClick={() => handleCategoryChange(cat.id)}
+               className={`px-5 py-2 rounded-full text-[10px] font-black uppercase tracking-widest whitespace-nowrap border transition-all ${cat.id === selectedCategory ? 'bg-mobile-accent text-white border-mobile-accent shadow-lg shadow-mobile-accent/20' : 'bg-white text-gray-400 border-gray-100'}`}
              >
-               {cat}
+               {cat.label}
              </button>
            ))}
         </div>
