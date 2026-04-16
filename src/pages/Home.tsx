@@ -166,25 +166,46 @@ const MobileFeedCard = ({ complaint, isLast, lastRef }: { complaint: Complaint, 
              
              return (
                <div key={idx} className="min-w-full h-full snap-center relative">
-                 {isVideo ? (
-                   <video 
-                     ref={el => { if (el) videoRefs.current.set(url, el); }}
-                     src={finalUrl} 
-                     className="w-full h-full object-contain" 
-                     muted={isMuted}
-                     loop 
-                     playsInline 
-                     crossOrigin="anonymous"
-                   />
-                 ) : (
-                   <img 
-                     src={finalUrl} 
-                     alt={`Media ${idx}`}
-                     className="w-full h-full object-contain" 
-                     crossOrigin="anonymous"
-                     onError={(e) => { (e.target as HTMLImageElement).src = '/images/portrait.png'; }}
-                   />
-                 )}
+                  {isVideo ? (
+                    <div className="w-full h-full relative group">
+                      {/* Blurred Background Dynamic */}
+                      <video 
+                        src={finalUrl} 
+                        className="absolute inset-0 w-full h-full object-cover blur-2xl opacity-40 scale-110 pointer-events-none" 
+                        muted 
+                        loop 
+                        playsInline 
+                        crossOrigin="anonymous"
+                      />
+                      {/* Sharp Foreground */}
+                      <video 
+                        ref={el => { if (el) videoRefs.current.set(url, el); }}
+                        src={finalUrl} 
+                        className="w-full h-full object-contain relative z-10" 
+                        muted={isMuted}
+                        loop 
+                        playsInline 
+                        crossOrigin="anonymous"
+                      />
+                    </div>
+                  ) : (
+                    <div className="w-full h-full relative">
+                       {/* Blurred Background Dynamic */}
+                       <img 
+                        src={finalUrl} 
+                        className="absolute inset-0 w-full h-full object-cover blur-2xl opacity-40 scale-110"
+                        crossOrigin="anonymous"
+                       />
+                       {/* Sharp Foreground */}
+                       <img 
+                        src={finalUrl} 
+                        alt={`Media ${idx}`}
+                        className="w-full h-full object-contain relative z-10" 
+                        crossOrigin="anonymous"
+                        onError={(e) => { (e.target as HTMLImageElement).src = '/images/portrait.png'; }}
+                       />
+                    </div>
+                  )}
                  {/* Audio Control */}
                  {isVideo && (
                     <button 
