@@ -1,7 +1,7 @@
 import { BrowserRouter as Router, Routes, Route, Link, useLocation, useNavigate } from 'react-router-dom';
 import { Suspense, lazy, useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { MapPin, Menu, X, Home as HomeIcon, LayoutGrid, Search, User, MessageSquarePlus, CheckCircle2, Loader2, AlertCircle } from 'lucide-react';
+import { MapPin, Menu, X, Home as HomeIcon, LayoutGrid, Search, User, Plus, CheckCircle2, Loader2, AlertCircle } from 'lucide-react';
 
 // Lazy load pages
 const Home = lazy(() => import('./pages/Home'));
@@ -30,7 +30,7 @@ function MobileBottomNav() {
   
   const items = [
     { icon: HomeIcon, path: '/', label: t('home') },
-    { icon: MessageSquarePlus, path: '/report', label: t('report') },
+    { icon: Plus, path: '/report', label: t('report') },
     { icon: Search, path: '/about', label: t('aboutUs') },
     { icon: User, path: '/profile', label: t('profile') || 'User' },
   ];
