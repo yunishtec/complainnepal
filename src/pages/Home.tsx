@@ -157,7 +157,7 @@ const MobileFeedCard = ({ complaint, isLast, lastRef }: { complaint: Complaint, 
            // (Simple enough for mobile tap)
            navigate(`/complaint/${complaint.id}`)
         }}
-        className="relative aspect-square md:aspect-[4/5] bg-black overflow-hidden cursor-pointer"
+        className="relative aspect-square md:aspect-[4/5] bg-black overflow-hidden cursor-pointer mx-4 rounded-2xl"
       >
          <div className="flex h-full overflow-x-auto snap-x snap-mandatory no-scrollbar cursor-grab active:cursor-grabbing">
            {mediaUrls.length > 0 ? mediaUrls.map((url, idx) => {
