@@ -32,7 +32,7 @@ function MobileBottomNav() {
     { icon: HomeIcon, path: '/', label: t('home') },
     { icon: MessageSquarePlus, path: '/report', label: t('report') },
     { icon: Search, path: '/about', label: t('aboutUs') },
-    { icon: User, path: '/profile', label: 'User' },
+    { icon: User, path: '/profile', label: t('profile') || 'User' },
   ];
 
   return (
@@ -160,7 +160,7 @@ function AppContent() {
                 ))}
                 
                 <div className="mt-8 flex items-center gap-4">
-                   <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Connect with us</p>
+                   <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{t('connectWithUs') || 'Connect with us'}</p>
                    <div className="flex-grow h-[1px] bg-gray-100"></div>
                 </div>
               </div>

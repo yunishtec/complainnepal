@@ -247,14 +247,14 @@ const MobileFeedCard = ({ complaint, isLast, lastRef }: { complaint: Complaint, 
               className={`flex items-center gap-2 transition-colors ${showComments ? 'text-brand-red' : 'text-gray-500'}`}
             >
                <MessageSquare size={18} />
-               <span className="text-[10px] font-black uppercase tracking-widest">{language === 'ne' ? 'प्रतिक्रिया' : 'Comment'}</span>
+               <span className="text-[10px] font-black uppercase tracking-widest">{t('remark')}</span>
             </button>
             <button 
               onClick={handleShare}
               className="flex items-center gap-2 text-gray-500 active:text-brand-red transition-colors"
             >
                <Share2 size={18} />
-               <span className="text-[10px] font-black uppercase tracking-widest">{language === 'ne' ? 'साझा' : 'Share'}</span>
+               <span className="text-[10px] font-black uppercase tracking-widest">{t('share')}</span>
             </button>
          </div>
          <div className="text-[9px] font-black text-gray-300 uppercase tracking-widest opacity-0">Post ID.{complaint.id}</div>
@@ -281,7 +281,7 @@ const MobileFeedCard = ({ complaint, isLast, lastRef }: { complaint: Complaint, 
                   type="text" 
                   value={newComment}
                   onChange={(e) => setNewComment(e.target.value)}
-                  placeholder={language === 'ne' ? "प्रतिक्रिया लेख्नुहोस्..." : "Add a remark..."}
+                  placeholder={t('addRemarkPlaceholder')}
                   className="w-full bg-gray-50 border border-gray-100 rounded-full px-5 py-2.5 text-sm focus:outline-none focus:border-brand-red focus:bg-white transition-all pr-12"
                 />
                 <button 
@@ -303,14 +303,14 @@ const MobileFeedCard = ({ complaint, isLast, lastRef }: { complaint: Complaint, 
              ) : (
                <>
                  {comments.length === 0 ? (
-                   <p className="text-[10px] font-bold text-gray-300 uppercase tracking-widest text-center py-4">No citizen remarks yet</p>
+                   <p className="text-[10px] font-bold text-gray-300 uppercase tracking-widest text-center py-4">{t('noRemarks')}</p>
                  ) : (
                    comments.map(c => (
                      <div key={c.id} className="flex gap-4 group">
                         <div className="w-8 h-8 rounded-full bg-gray-50 border border-gray-100 flex items-center justify-center text-[9px] font-black text-gray-300 flex-shrink-0 group-hover:bg-brand-red/5 transition-colors">CP</div>
                         <div className="flex-grow">
                            <div className="flex items-center gap-2 mb-1">
-                              <span className="text-[10px] font-black text-gray-900">Citizen #{c.id % 999}</span>
+                              <span className="text-[10px] font-black text-gray-900">{t('citizen')} #{c.id % 999}</span>
                               <span className="text-[8px] font-bold text-gray-400 uppercase tracking-tighter">{new Date(c.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                            </div>
                            <p className="text-xs text-gray-600 font-medium leading-relaxed">{c.text}</p>
@@ -326,7 +326,7 @@ const MobileFeedCard = ({ complaint, isLast, lastRef }: { complaint: Complaint, 
             onClick={() => navigate(`/complaint/${complaint.id}`)}
             className="w-full mt-8 py-3 bg-gray-50 rounded-xl text-[10px] font-black uppercase tracking-widest text-gray-400 flex items-center justify-center gap-2 hover:bg-gray-900 hover:text-white transition-all group"
           >
-            Open Full Archives <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
+            {t('openFullArchives')} <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
           </button>
         </motion.div>
       )}
@@ -438,7 +438,7 @@ export default function Home() {
               <User size={20} className="text-gray-400" />
             </div>
             <div className="flex-grow bg-gray-50 px-5 py-2.5 rounded-full">
-              <span className="text-gray-400 text-sm font-medium">What's on your mind?</span>
+              <span className="text-gray-400 text-sm font-medium">{t('whatsOnYourMind')}</span>
             </div>
             <div className="text-mobile-accent w-10 h-10 flex items-center justify-center">
                <PlusCircle size={24} />
@@ -462,7 +462,7 @@ export default function Home() {
         {/* Feed Section */}
         <div className="w-full">
           <div className="flex items-center justify-between mb-6 px-6">
-             <h3 className="text-lg font-black text-gray-900 uppercase tracking-tighter">Community Feed</h3>
+             <h3 className="text-lg font-black text-gray-900 uppercase tracking-tighter">{t('communityFeed')}</h3>
           </div>
 
           <div className="space-y-0">
@@ -526,13 +526,13 @@ export default function Home() {
           <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-12">
             <div className="flex flex-col items-start gap-4">
               <h2 className="text-3xl font-black uppercase tracking-tighter">Complaine<span className="text-brand-red">Nepal</span></h2>
-              <p className="text-gray-400 text-xs font-bold uppercase tracking-widest">Bridging the gap between citizens & accountability</p>
+              <p className="text-gray-400 text-xs font-bold uppercase tracking-widest">{t('bridgingGap')}</p>
             </div>
             <div className="flex gap-12">
-              <button onClick={() => navigate('/privacy-policy')} className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-400 hover:text-brand-red transition-all">Privacy Policy</button>
-              <button onClick={() => navigate('/terms-of-service')} className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-400 hover:text-brand-red transition-all">Terms of Service</button>
+              <button onClick={() => navigate('/privacy-policy')} className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-400 hover:text-brand-red transition-all">{t('privacyPolicy')}</button>
+              <button onClick={() => navigate('/terms-of-service')} className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-400 hover:text-brand-red transition-all">{t('termsOfService')}</button>
             </div>
-            <p className="text-[10px] font-black text-gray-300 uppercase tracking-widest">© 2026 ComplaineNepal. ALL RIGHTS RESERVED.</p>
+            <p className="text-[10px] font-black text-gray-300 uppercase tracking-widest">© 2026 ComplaineNepal. {t('rightsReserved')}</p>
           </div>
         </footer>
       </div>

@@ -105,6 +105,7 @@ const CustomVideo = ({ src, isActive }: { src: string, isActive: boolean }) => {
 export default function ComplaintDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const scrollRef = useRef<HTMLDivElement>(null);
   const descRef = useRef<HTMLDivElement>(null);
   
@@ -184,7 +185,7 @@ export default function ComplaintDetail() {
         await navigator.share(shareData);
       } else {
         await navigator.clipboard.writeText(window.location.href);
-        alert("Link copied to clipboard!");
+        alert(t('linkCopied') || "Link copied to clipboard!");
       }
     } catch (err) { console.error(err); }
   };
@@ -203,14 +204,14 @@ export default function ComplaintDetail() {
   if (loading) return (
     <div className="min-h-screen bg-white flex flex-col items-center justify-center">
       <Loader2 className="w-8 h-8 text-brand-red animate-spin mb-4" />
-      <span className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-300">Retrieving Record</span>
+      <span className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-300">{t('retrievingRecord')}</span>
     </div>
   );
 
   if (!complaint) return (
     <div className="min-h-screen bg-white flex flex-col items-center justify-center text-gray-900 p-6 text-center">
-      <h2 className="text-xl font-black uppercase tracking-tight mb-4 text-brand-red">Case Not Accessible</h2>
-      <button onClick={() => navigate('/feed')} className="border border-gray-100 text-gray-900 px-5 py-2 rounded-full font-black uppercase text-[10px] hover:bg-gray-900 hover:text-white transition-all">Back to Feed</button>
+      <h2 className="text-xl font-black uppercase tracking-tight mb-4 text-brand-red">{t('caseNotAccessible')}</h2>
+      <button onClick={() => navigate('/feed')} className="border border-gray-100 text-gray-900 px-5 py-2 rounded-full font-black uppercase text-[10px] hover:bg-gray-900 hover:text-white transition-all">{t('backToFeed')}</button>
     </div>
   );
 
@@ -223,7 +224,7 @@ export default function ComplaintDetail() {
   return (
     <div className="relative min-h-screen bg-white text-gray-900 font-sans overflow-x-hidden">
       <nav className="sticky top-0 z-50 bg-white/80 backdrop-blur-md px-6 py-4 flex items-center border-b border-gray-50">
-         <button onClick={() => navigate(-1)} className="flex items-center gap-2 hover:text-brand-red transition-all text-[10px] font-black uppercase tracking-widest text-gray-400"><ArrowLeft size={16} />Back to Archives</button>
+         <button onClick={() => navigate(-1)} className="flex items-center gap-2 hover:text-brand-red transition-all text-[10px] font-black uppercase tracking-widest text-gray-400"><ArrowLeft size={16} />{t('backToArchives')}</button>
       </nav>
 
       <div className="max-w-5xl mx-auto px-6 pt-6 pb-20">
@@ -247,53 +248,53 @@ export default function ComplaintDetail() {
         </section>
 
         <div className="flex flex-col md:flex-row md:items-start justify-between gap-6 mb-10">
-           <div className="flex-grow">
-              <div className="flex items-center gap-3 mb-4 text-[9px] font-black uppercase tracking-[0.2em]">
-                 <span className="text-brand-red">Report #{complaint.id}</span>
-                 <span className="text-gray-200">/</span><span className="text-gray-400 font-bold">{complaint.category}</span>
-                 <span className="text-gray-200">/</span><span className="text-gray-400 font-bold">{complaint.status}</span>
-              </div>
-              <h1 className="text-2xl md:text-3xl font-black leading-tight tracking-tight text-gray-900 mb-6 uppercase">{displayTitle}</h1>
+            <div className="flex-grow">
+               <div className="flex items-center gap-3 mb-4 text-[9px] font-black uppercase tracking-[0.2em]">
+                  <span className="text-brand-red">{t('reportIdLabel')}{complaint.id}</span>
+                  <span className="text-gray-200">/</span><span className="text-gray-400 font-bold">{t(complaint.category)}</span>
+                  <span className="text-gray-200">/</span><span className="text-gray-400 font-bold">{complaint.status}</span>
+               </div>
+               <h1 className="text-2xl md:text-3xl font-black leading-tight tracking-tight text-gray-900 mb-6 uppercase">{displayTitle}</h1>
               <div className="flex items-center gap-6 text-gray-400 text-[11px] font-bold">
                  <span className="flex items-center gap-2"><Calendar size={16} /> {new Date(complaint.createdAt).toLocaleDateString()}</span>
                  <span className="flex items-center gap-2 text-brand-red truncate max-w-[200px]"><MapPin size={16} strokeWidth={3} /> {displayLocation}</span>
               </div>
            </div>
            <div className="flex items-center gap-2 flex-shrink-0 pt-2">
-              <div className="flex items-center bg-gray-50 border border-gray-100 rounded-xl overflow-hidden">
-                 <button onClick={handleUpvote} className={`flex items-center gap-3 px-5 py-2.5 hover:bg-gray-100 transition-all border-r border-gray-100 ${hasUpvoted ? 'text-brand-red' : ''}`}><ChevronUp size={22} strokeWidth={3} /><span className="text-sm font-black">{complaint.upvotes}</span></button>
-                 <button className="px-5 py-2.5 hover:bg-gray-100 transition-all text-gray-200"><ChevronDown size={22} strokeWidth={3} /></button>
-              </div>
-              <button onClick={handleShare} className="flex items-center gap-2 bg-gray-50 px-5 py-2.5 rounded-xl hover:bg-gray-100 transition-all border border-gray-100 text-gray-600 active:scale-95"><Share2 size={16} /><span className="text-[10px] font-black uppercase tracking-widest leading-none">Share</span></button>
-           </div>
+               <div className="flex items-center bg-gray-50 border border-gray-100 rounded-xl overflow-hidden">
+                  <button onClick={handleUpvote} className={`flex items-center gap-3 px-5 py-2.5 hover:bg-gray-100 transition-all border-r border-gray-100 ${hasUpvoted ? 'text-brand-red' : ''}`}><ChevronUp size={22} strokeWidth={3} /><span className="text-sm font-black">{complaint.upvotes}</span></button>
+                  <button className="px-5 py-2.5 hover:bg-gray-100 transition-all text-gray-200"><ChevronDown size={22} strokeWidth={3} /></button>
+               </div>
+               <button onClick={handleShare} className="flex items-center gap-2 bg-gray-50 px-5 py-2.5 rounded-xl hover:bg-gray-100 transition-all border border-gray-100 text-gray-600 active:scale-95"><Share2 size={16} /><span className="text-[10px] font-black uppercase tracking-widest leading-none">{t('share')}</span></button>
+            </div>
         </div>
 
         <div className="max-w-4xl">
            <div className="bg-gray-50/50 rounded-2xl p-6 md:p-8 border border-gray-50 mb-16 shadow-sm">
-              <div ref={descRef} className={`text-base text-gray-600 font-medium leading-[1.8] whitespace-pre-wrap transition-all duration-500 overflow-hidden ${!isExpanded ? 'line-clamp-2 max-h-[4em]' : 'max-h-[2000px]'}`}>{displayDescription}</div>
-              {(hasOverflow || rawDescription.length > 200) && (
-                <button onClick={() => setIsExpanded(!isExpanded)} className="mt-4 flex items-center gap-2 text-brand-red text-[10px] font-black uppercase tracking-widest hover:brightness-110 transition-all">
-                  {isExpanded ? <>Show Less <ChevronUp size={14} /></> : <>Show More <ChevronDown size={14} /></>}
-                </button>
-              )}
+               <div ref={descRef} className={`text-base text-gray-600 font-medium leading-[1.8] whitespace-pre-wrap transition-all duration-500 overflow-hidden ${!isExpanded ? 'line-clamp-2 max-h-[4em]' : 'max-h-[2000px]'}`}>{displayDescription}</div>
+               {(hasOverflow || rawDescription.length > 200) && (
+                 <button onClick={() => setIsExpanded(!isExpanded)} className="mt-4 flex items-center gap-2 text-brand-red text-[10px] font-black uppercase tracking-widest hover:brightness-110 transition-all">
+                   {isExpanded ? <>{t('showLess')} <ChevronUp size={14} /></> : <>{t('showMore')} <ChevronDown size={14} /></>}
+                 </button>
+               )}
            </div>
 
-           <section className="pt-12 border-t border-gray-100">
-              <h3 className="text-sm font-black uppercase tracking-[0.3em] text-gray-900 mb-10 flex items-center gap-4">{comments.length} Discussion records <div className="h-0.5 w-8 bg-brand-red rounded-full" /></h3>
-              <form onSubmit={handleAddComment} className="mb-16">
-                 <div className="bg-white rounded-xl p-4 border border-gray-100 focus-within:border-brand-red transition-all shadow-sm">
-                    <textarea placeholder="Enter verification remark..." className="w-full bg-transparent outline-none text-sm font-medium min-h-[100px] text-gray-900 placeholder:text-gray-200" value={newComment} onChange={(e) => setNewComment(e.target.value)} />
-                    <div className="flex justify-end mt-4">
-                       <button type="submit" disabled={!newComment.trim() || submittingComment} className="bg-gray-900 text-white px-5 py-2.5 rounded-lg font-black uppercase tracking-widest text-[10px] hover:bg-brand-red transition-all disabled:opacity-20 shadow-lg">Verify & Post</button>
-                    </div>
-                 </div>
-              </form>
+            <section className="pt-12 border-t border-gray-100">
+               <h3 className="text-sm font-black uppercase tracking-[0.3em] text-gray-900 mb-10 flex items-center gap-4">{comments.length} {t('discussionRecords')} <div className="h-0.5 w-8 bg-brand-red rounded-full" /></h3>
+               <form onSubmit={handleAddComment} className="mb-16">
+                  <div className="bg-white rounded-xl p-4 border border-gray-100 focus-within:border-brand-red transition-all shadow-sm">
+                     <textarea placeholder={t('verificationRemark')} className="w-full bg-transparent outline-none text-sm font-medium min-h-[100px] text-gray-900 placeholder:text-gray-200" value={newComment} onChange={(e) => setNewComment(e.target.value)} />
+                     <div className="flex justify-end mt-4">
+                        <button type="submit" disabled={!newComment.trim() || submittingComment} className="bg-gray-900 text-white px-5 py-2.5 rounded-lg font-black uppercase tracking-widest text-[10px] hover:bg-brand-red transition-all disabled:opacity-20 shadow-lg">{t('verifyPost')}</button>
+                     </div>
+                  </div>
+               </form>
               <div className="space-y-6">
-                 {comments.map((comment) => (
-                   <div key={comment.id} className="flex gap-4 pb-6 border-b border-gray-50 last:border-0 group">
-                      <div className="w-9 h-9 rounded-xl bg-gray-50 border border-gray-100 flex items-center justify-center font-black text-[9px] flex-shrink-0 text-gray-300 group-hover:bg-brand-red group-hover:text-white transition-all shadow-sm">CP</div>
-                      <div>
-                         <div className="flex items-center gap-2 mb-1.5 text-[10px] font-bold"><span className="text-gray-900">citizen_{comment.id}</span><span className="text-gray-200">·</span><span className="text-gray-400 uppercase tracking-tighter">{new Date(comment.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span></div>
+                  {comments.map((comment) => (
+                    <div key={comment.id} className="flex gap-4 pb-6 border-b border-gray-50 last:border-0 group">
+                       <div className="w-9 h-9 rounded-xl bg-gray-50 border border-gray-100 flex items-center justify-center font-black text-[9px] flex-shrink-0 text-gray-300 group-hover:bg-brand-red group-hover:text-white transition-all shadow-sm">CP</div>
+                       <div>
+                          <div className="flex items-center gap-2 mb-1.5 text-[10px] font-bold"><span className="text-gray-900">{t('citizen')}_{comment.id}</span><span className="text-gray-200">·</span><span className="text-gray-400 uppercase tracking-tighter">{new Date(comment.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span></div>
                          <p className="text-sm text-gray-500 font-medium leading-relaxed">{comment.text}</p>
                       </div>
                    </div>
