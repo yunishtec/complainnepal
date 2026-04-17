@@ -78,7 +78,7 @@ async def create_complaint(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("", response_model=List[schemas.Complaint])
-def get_complaints(skip: int = 0, limit: int = 100, category: str = None, db: Session = Depends(get_db)):
+def get_complaints(skip: int = 0, limit: int = 100, category: str = None, q: str = None, db: Session = Depends(get_db)):
     query = db.query(
         models.Complaint,
         func.count(models.Comment.id).label("comment_count")
@@ -86,6 +86,12 @@ def get_complaints(skip: int = 0, limit: int = 100, category: str = None, db: Se
 
     if category and category != 'All' and category != 'सबै':
         query = query.filter(models.Complaint.category == category)
+    
+    if q:
+        query = query.filter(
+            (models.Complaint.title.ilike(f"%{q}%")) | 
+            (models.Complaint.description.ilike(f"%{q}%"))
+        )
 
     results = query.group_by(models.Complaint.id).order_by(models.Complaint.created_at.desc()).offset(skip).limit(limit).all()
     

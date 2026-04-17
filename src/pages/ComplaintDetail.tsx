@@ -118,7 +118,7 @@ export default function ComplaintDetail() {
   const [currentMediaIdx, setCurrentMediaIdx] = useState(0);
   const [hasUpvoted, setHasUpvoted] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
-  const [hasOverflow, setHasOverflow] = useState(false);
+  const [everOverflowed, setEverOverflowed] = useState(false);
 
   useEffect(() => {
     const loadDetail = async () => {
@@ -136,10 +136,26 @@ export default function ComplaintDetail() {
     loadDetail();
   }, [id]);
 
+
   useEffect(() => {
-    if (descRef.current) {
-      setHasOverflow(descRef.current.scrollHeight > descRef.current.clientHeight);
-    }
+    const checkOverflow = () => {
+      if (descRef.current) {
+        const isCurrentlyOverflowing = descRef.current.scrollHeight > descRef.current.clientHeight + 1;
+        
+        if (!isExpanded) {
+          if (isCurrentlyOverflowing) setEverOverflowed(true);
+        }
+      }
+    };
+
+    checkOverflow();
+    window.addEventListener('resize', checkOverflow);
+    const timer = setTimeout(checkOverflow, 100);
+    
+    return () => {
+      window.removeEventListener('resize', checkOverflow);
+      clearTimeout(timer);
+    };
   }, [complaint, isExpanded]);
 
   const handleScroll = () => {
@@ -271,22 +287,33 @@ export default function ComplaintDetail() {
         </div>
 
         <div className="max-w-4xl">
-           <div className="bg-gray-50/50 rounded-2xl p-6 md:p-8 border border-gray-50 mb-16 shadow-sm">
-               <div ref={descRef} className={`text-base text-gray-600 font-medium leading-[1.8] whitespace-pre-wrap transition-all duration-500 overflow-hidden ${!isExpanded ? 'line-clamp-2 max-h-[4em]' : 'max-h-[2000px]'}`}>{displayDescription}</div>
-               {(hasOverflow || rawDescription.length > 200) && (
-                 <button onClick={() => setIsExpanded(!isExpanded)} className="mt-4 flex items-center gap-2 text-brand-red text-[10px] font-black uppercase tracking-widest hover:brightness-110 transition-all">
-                   {isExpanded ? <>{t('showLess')} <ChevronUp size={14} /></> : <>{t('showMore')} <ChevronDown size={14} /></>}
-                 </button>
+            <div className="bg-gray-50/50 rounded-2xl p-6 md:p-8 border border-gray-50 mb-16 shadow-sm">
+               <div 
+                  ref={descRef} 
+                  onClick={() => everOverflowed && setIsExpanded(!isExpanded)}
+                  className={`text-base text-gray-600 font-medium leading-[1.8] whitespace-pre-wrap transition-all duration-500 overflow-hidden ${!isExpanded ? 'line-clamp-2' : ''} ${everOverflowed && !isExpanded ? 'cursor-pointer hover:text-gray-900' : ''}`}
+               >
+                  {displayDescription}
+               </div>
+               {everOverflowed && (
+                  <button onClick={() => setIsExpanded(!isExpanded)} className="mt-4 flex items-center gap-2 text-brand-red text-[10px] font-black uppercase tracking-widest hover:brightness-110 transition-all">
+                    {isExpanded ? <>{t('showLess')} <ChevronUp size={14} /></> : <>{t('showMore')} <ChevronDown size={14} /></>}
+                  </button>
                )}
-           </div>
+            </div>
 
             <section className="pt-12 border-t border-gray-100">
                <h3 className="text-sm font-black uppercase tracking-[0.3em] text-gray-900 mb-10 flex items-center gap-4">{comments.length} {t('discussionRecords')} <div className="h-0.5 w-8 bg-brand-red rounded-full" /></h3>
-               <form onSubmit={handleAddComment} className="mb-16">
-                  <div className="bg-white rounded-xl p-4 border border-gray-100 focus-within:border-brand-red transition-all shadow-sm">
-                     <textarea placeholder={t('verificationRemark')} className="w-full bg-transparent outline-none text-sm font-medium min-h-[100px] text-gray-900 placeholder:text-gray-200" value={newComment} onChange={(e) => setNewComment(e.target.value)} />
+               <form onSubmit={handleAddComment} className="mb-16 max-w-2xl">
+                  <div className="bg-white rounded-2xl px-6 py-4 border border-gray-100 focus-within:border-brand-red transition-all shadow-sm">
+                     <textarea 
+                        placeholder={t('verificationRemark')} 
+                        className="w-full bg-transparent outline-none text-sm font-medium min-h-[60px] text-gray-900 placeholder:text-gray-200 resize-none" 
+                        value={newComment} 
+                        onChange={(e) => setNewComment(e.target.value)} 
+                     />
                      <div className="flex justify-end mt-4">
-                        <button type="submit" disabled={!newComment.trim() || submittingComment} className="bg-gray-900 text-white px-5 py-2.5 rounded-lg font-black uppercase tracking-widest text-[10px] hover:bg-brand-red transition-all disabled:opacity-20 shadow-lg">{t('verifyPost')}</button>
+                        <button type="submit" disabled={!newComment.trim() || submittingComment} className="bg-gray-900 text-white px-8 py-3 rounded-xl font-black uppercase tracking-widest text-[10px] hover:bg-brand-red transition-all disabled:opacity-20 shadow-lg active:scale-95">{t('verifyPost')}</button>
                      </div>
                   </div>
                </form>

@@ -12,6 +12,7 @@ const PrivacyPolicy = lazy(() => import('./pages/PrivacyPolicy'));
 const TermsOfService = lazy(() => import('./pages/TermsOfService'));
 const About = lazy(() => import('./pages/About'));
 const ComplaintDetail = lazy(() => import('./pages/ComplaintDetail'));
+const SearchPage = lazy(() => import('./pages/Search'));
 
 import { useLanguage, LanguageProvider } from './context/LanguageContext';
 import { UploadProvider, useUpload } from './context/UploadContext';
@@ -31,7 +32,7 @@ function MobileBottomNav() {
   const items = [
     { icon: HomeIcon, path: '/', label: t('home') },
     { icon: Plus, path: '/report', label: t('report') },
-    { icon: Search, path: '/about', label: t('aboutUs') },
+    { icon: Search, path: '/search', label: t('search') || 'Search' },
     { icon: User, path: '/profile', label: t('profile') || 'User' },
   ];
 
@@ -121,6 +122,13 @@ function AppContent() {
               </button>
             </div>
             
+            <button 
+              onClick={() => navigate('/search')}
+              className="hidden md:flex items-center justify-center w-10 h-10 bg-[#003893] text-white rounded-full hover:bg-brand-red transition-all hover:scale-110 active:scale-95 shadow-lg shadow-blue-900/10"
+            >
+              <Search size={18} />
+            </button>
+
              <button 
               onClick={() => navigate('/report')}
               className="hidden md:block bg-[#0f172a] text-white px-8 py-3 rounded-full font-black text-xs uppercase tracking-widest hover:bg-brand-red transition-all hover:scale-110 hover:shadow-[0_10px_30px_rgba(220,20,60,0.3)] active:scale-95"
@@ -178,6 +186,7 @@ function AppContent() {
             <Route path="/report" element={<Report />} />
             <Route path="/complaint/:id" element={<ComplaintDetail />} />
             <Route path="/success" element={<Success />} />
+            <Route path="/search" element={<SearchPage />} />
             <Route path="/privacy-policy" element={<PrivacyPolicy />} />
             <Route path="/terms-of-service" element={<TermsOfService />} />
           </Routes>

@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { motion } from 'motion/react';
-import { Loader2, PlusCircle, List, ArrowUpRight, TrendingUp, LayoutGrid, User, MapPin, Volume2, VolumeX, MessageSquare, Share2, Send, ArrowRight } from 'lucide-react';
+import { Loader2, PlusCircle, List, ArrowUpRight, TrendingUp, LayoutGrid, User, MapPin, Volume2, VolumeX, MessageSquare, Share2, Send, ArrowRight, Search } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 import { fetchComplaints, Complaint, fetchComments, addComment, upvoteComplaint, unvoteComplaint, Comment } from '../services/complaintService';
 import ComplaintCard from '../components/ComplaintCard';
@@ -122,8 +122,7 @@ const MobileFeedCard = ({ complaint, isLast, lastRef }: { complaint: Complaint, 
     >
       {/* Header */}
       <div 
-        onClick={() => navigate(`/complaint/${complaint.id}`)}
-        className="px-6 py-4 flex items-center justify-between cursor-pointer active:brightness-95 transition-all"
+        className="px-6 py-4 flex items-center justify-between transition-all"
       >
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center shrink-0 border border-gray-50 overflow-hidden">
@@ -138,9 +137,6 @@ const MobileFeedCard = ({ complaint, isLast, lastRef }: { complaint: Complaint, 
             </div>
           </div>
         </div>
-        <div className="text-gray-300">
-           <ArrowUpRight size={18} />
-        </div>
       </div>
 
       {/* Description */}
@@ -152,12 +148,7 @@ const MobileFeedCard = ({ complaint, isLast, lastRef }: { complaint: Complaint, 
 
       {/* Media Gallery (Swipable) */}
       <div 
-        onClick={() => {
-           // Only navigate if they tap and don't drag 
-           // (Simple enough for mobile tap)
-           navigate(`/complaint/${complaint.id}`)
-        }}
-        className="relative aspect-square md:aspect-[4/5] bg-black overflow-hidden cursor-pointer mx-4 rounded-2xl select-none"
+        className="relative aspect-square md:aspect-[4/5] bg-black overflow-hidden mx-4 rounded-2xl select-none"
       >
          <div className="flex h-full overflow-x-auto snap-x snap-mandatory no-scrollbar cursor-grab active:cursor-grabbing select-none">
            {mediaUrls.length > 0 ? mediaUrls.map((url, idx) => {
@@ -324,12 +315,7 @@ const MobileFeedCard = ({ complaint, isLast, lastRef }: { complaint: Complaint, 
              )}
           </div>
 
-          <button 
-            onClick={() => navigate(`/complaint/${complaint.id}`)}
-            className="w-full mt-8 py-3 bg-gray-50 rounded-xl text-[10px] font-black uppercase tracking-widest text-gray-400 flex items-center justify-center gap-2 hover:bg-gray-900 hover:text-white transition-all group"
-          >
-            {t('openFullArchives')} <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
-          </button>
+
         </motion.div>
       )}
     </div>

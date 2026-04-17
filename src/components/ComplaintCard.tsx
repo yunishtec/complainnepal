@@ -33,13 +33,29 @@ export default function ComplaintCard({ complaint }: ComplaintCardProps) {
 
   const previewUrl = getPreviewUrl();
 
+  const [isMobile, setIsMobile] = React.useState(window.innerWidth < 768);
+
+  React.useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  const handleCardClick = () => {
+    if (!isMobile) {
+      navigate(`/complaint/${complaint.id}`);
+    }
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      whileHover={{ y: -8, transition: { duration: 0.2 } }}
-      onClick={() => navigate(`/complaint/${complaint.id}`)}
-      className="bg-white rounded-[32px] overflow-hidden shadow-sm border border-gray-100 hover:shadow-[0_40px_80px_rgba(0,0,0,0.1)] transition-all cursor-pointer group mb-4"
+      whileHover={!isMobile ? { y: -8, transition: { duration: 0.2 } } : {}}
+      onClick={handleCardClick}
+      className={`bg-white rounded-[32px] overflow-hidden shadow-sm border border-gray-100 transition-all group mb-4 ${
+        !isMobile ? 'cursor-pointer hover:shadow-[0_40px_80px_rgba(0,0,0,0.1)]' : 'cursor-default'
+      }`}
     >
       {/* 🎬 Static Preview Section */}
       <div className="relative w-full aspect-video bg-gray-100 overflow-hidden">
