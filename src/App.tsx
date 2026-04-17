@@ -1,7 +1,7 @@
 import { BrowserRouter as Router, Routes, Route, Link, useLocation, useNavigate } from 'react-router-dom';
 import { Suspense, lazy, useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { MapPin, Menu, X, Home as HomeIcon, LayoutGrid, Search, User, Plus, CheckCircle2, Loader2, AlertCircle } from 'lucide-react';
+import { MapPin, Menu, X, Home as HomeIcon, LayoutGrid, Search, User, Plus, CheckCircle2, Loader2, AlertCircle, LogOut } from 'lucide-react';
 
 // Lazy load pages
 const Home = lazy(() => import('./pages/Home'));
@@ -13,9 +13,13 @@ const TermsOfService = lazy(() => import('./pages/TermsOfService'));
 const About = lazy(() => import('./pages/About'));
 const ComplaintDetail = lazy(() => import('./pages/ComplaintDetail'));
 const SearchPage = lazy(() => import('./pages/Search'));
+const Login = lazy(() => import('./pages/Login'));
+const Signup = lazy(() => import('./pages/Signup'));
+const Profile = lazy(() => import('./pages/Profile'));
 
 import { useLanguage, LanguageProvider } from './context/LanguageContext';
 import { UploadProvider, useUpload } from './context/UploadContext';
+import { AuthProvider, useAuth } from './context/AuthContext';
 
 // Sleek loading fallback
 const PageLoader = () => (
@@ -60,6 +64,7 @@ function AppContent() {
   const navigate = useNavigate();
   const location = useLocation();
   const { language, setLanguage, t } = useLanguage();
+  const { user, logout } = useAuth();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { activeUploads } = useUpload();
 
@@ -123,18 +128,42 @@ function AppContent() {
             </div>
             
             <button 
-              onClick={() => navigate('/search')}
-              className="hidden md:flex items-center justify-center w-10 h-10 bg-[#003893] text-white rounded-full hover:bg-brand-red transition-all hover:scale-110 active:scale-95 shadow-lg shadow-blue-900/10"
+               onClick={() => navigate('/search')}
+               className="hidden md:flex items-center justify-center w-10 h-10 bg-[#003893] text-white rounded-full hover:bg-brand-red transition-all hover:scale-110 active:scale-95 shadow-lg shadow-blue-900/10"
             >
-              <Search size={18} />
+               <Search size={18} />
             </button>
-
-             <button 
-              onClick={() => navigate('/report')}
-              className="hidden md:block bg-[#0f172a] text-white px-8 py-3 rounded-full font-black text-xs uppercase tracking-widest hover:bg-brand-red transition-all hover:scale-110 hover:shadow-[0_10px_30px_rgba(220,20,60,0.3)] active:scale-95"
-            >
-              {t('getStarted')}
-            </button>
+            
+             <div className="hidden md:flex items-center gap-4">
+               {user ? (
+                 <>
+                   <div className="flex items-center gap-4 mr-4">
+                     <div className="flex flex-col items-end">
+                        <span className="text-[10px] font-black uppercase tracking-tight text-gray-900">{user.username}</span>
+                        <button onClick={logout} className="text-[8px] font-black uppercase tracking-widest text-brand-red hover:brightness-110 transition-all flex items-center gap-1">
+                          {t('logout')} <LogOut size={10} />
+                        </button>
+                     </div>
+                     <Link to="/profile" className="w-10 h-10 bg-gray-900 rounded-full flex items-center justify-center text-white text-[10px] font-black border-2 border-white shadow-lg overflow-hidden uppercase tracking-tighter hover:scale-110 transition-all">
+                       {user.username.substring(0, 2)}
+                     </Link>
+                   </div>
+                   <button 
+                    onClick={() => navigate('/report')}
+                    className="hidden md:block bg-[#0f172a] text-white px-8 py-3 rounded-full font-black text-xs uppercase tracking-widest hover:bg-brand-red transition-all hover:scale-110 hover:shadow-[0_10px_30px_rgba(220,20,60,0.3)] active:scale-95"
+                   >
+                    {t('report')}
+                   </button>
+                 </>
+               ) : (
+                 <button 
+                  onClick={() => navigate('/login')}
+                  className="bg-gray-900 text-white px-8 py-3 rounded-full font-black text-xs uppercase tracking-widest hover:bg-brand-red transition-all hover:scale-110 shadow-xl active:scale-95"
+                >
+                  {t('login')}
+                </button>
+               )}
+             </div>
             
             {/* Mobile Menu Toggle */}
             <button 
@@ -187,6 +216,9 @@ function AppContent() {
             <Route path="/complaint/:id" element={<ComplaintDetail />} />
             <Route path="/success" element={<Success />} />
             <Route path="/search" element={<SearchPage />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/signup" element={<Signup />} />
+            <Route path="/profile" element={<Profile />} />
             <Route path="/privacy-policy" element={<PrivacyPolicy />} />
             <Route path="/terms-of-service" element={<TermsOfService />} />
           </Routes>
@@ -246,9 +278,11 @@ export default function App() {
   return (
     <Router>
       <LanguageProvider>
-        <UploadProvider>
-          <AppContent />
-        </UploadProvider>
+        <AuthProvider>
+          <UploadProvider>
+            <AppContent />
+          </UploadProvider>
+        </AuthProvider>
       </LanguageProvider>
     </Router>
   );

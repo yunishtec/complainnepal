@@ -1,9 +1,9 @@
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
 from sqlalchemy.orm import Session
 from sqlalchemy import func
-from typing import List
+from typing import List, Optional
 from ..database import get_db
-from .. import models, schemas
+from .. import models, schemas, auth
 from ..services import cloudinary_service, email_service, category_mapper
 
 router = APIRouter(prefix="/api/complaints", tags=["complaints"])
@@ -15,7 +15,8 @@ async def create_complaint(
     category: str = Form(...),
     location: str = Form(...),
     files: List[UploadFile] = File(...),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: Optional[models.User] = Depends(auth.get_current_user)
 ):
     try:
         # 1. Validation & Multi-file Upload
@@ -51,7 +52,8 @@ async def create_complaint(
             description=description,
             category=category,
             location=location,
-            media_url=media_urls_str
+            media_url=media_urls_str,
+            user_id=current_user.id if current_user else None
         )
         db.add(db_complaint)
         db.commit()
