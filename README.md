@@ -1,4 +1,4 @@
-![alt text](image.png)# ComplaineNepal
+ ComplaineNepal
 
 A civic issue reporting platform for Nepal. Report local infrastructure and civic issues directly to authorities.
 
@@ -32,3 +32,5 @@ A civic issue reporting platform for Nepal. Report local infrastructure and civi
 - Frontend: React (Vite), Tailwind CSS, Motion
 - Backend: Express, Better-SQLite3
 - Services: Cloudinary, Nodemailer
+
+  We do have few problems..untimately u comapre your product to others but here is the thing there is nothing like this so thisis the benchmark so do with that what you will..
