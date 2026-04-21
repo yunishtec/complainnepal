@@ -11,13 +11,15 @@ const serviceAccount = {
   privateKey: privateKey,
 };
 
+// Robust initialization for Next.js environment
 if (!admin.apps.length) {
   try {
     admin.initializeApp({
       credential: admin.credential.cert(serviceAccount as admin.ServiceAccount),
     });
+    console.log('🔥 Firebase Admin Initialized Successfully');
   } catch (error) {
-    console.error('Firebase admin initialization error', error);
+    console.error('❌ Firebase Admin Initialization Error:', error);
   }
 }
 
