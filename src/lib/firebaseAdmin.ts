@@ -3,9 +3,11 @@ import * as admin from 'firebase-admin';
 // This function safely initializes and returns the Firebase Admin instance
 function getAdminApp() {
   if (!admin.apps.length) {
-    const privateKey = process.env.FIREBASE_PRIVATE_KEY 
-      ? process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n')
-      : undefined;
+    let key = process.env.FIREBASE_PRIVATE_KEY;
+    if (key && key.startsWith('"') && key.endsWith('"')) {
+      key = key.substring(1, key.length - 1);
+    }
+    const privateKey = key ? key.replace(/\\n/g, '\n') : undefined;
 
     const serviceAccount = {
       projectId: process.env.FIREBASE_PROJECT_ID?.trim(),
