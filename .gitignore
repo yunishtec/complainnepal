@@ -7,3 +7,5 @@ __pycache__
 backend/__pycache__
 backend/.venv
 .DS_Store
+
+/src/generated/prisma

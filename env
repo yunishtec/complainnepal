@@ -1,0 +1,17 @@
+# App Configuration
+APP_URL="http://localhost:3000"
+DATABASE_URL="postgresql://neondb_owner:npg_ILh3rk1ZGfin@ep-small-haze-a14mj43i-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require"
+
+# Cloudinary Configuration
+CLOUDINARY_CLOUD_NAME=dus9njiyi
+CLOUDINARY_API_KEY=256996567572776
+CLOUDINARY_API_SECRET=nV9X41gHE8-Oc1dcJb1RaddYBfo
+
+# SMTP Configuration (e.g., Gmail)
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USER=
+SMTP_PASS=
+SMTP_FROM_EMAIL=
+
+SECRET_KEY=98b50e2ddc9943efb387052637738f6154673836373338333132

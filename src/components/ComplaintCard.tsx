@@ -1,9 +1,10 @@
+"use client";
 import React from 'react';
 import { motion } from 'motion/react';
 import { MapPin, MessageSquare, ChevronUp, Image as ImageIcon, Film } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-import { Complaint } from '../services/complaintService';
-import { useLanguage } from '../context/LanguageContext';
+import { useRouter } from 'next/navigation';
+import { Complaint } from '@/services/complaintService';
+import { useLanguage } from '@/context/LanguageContext';
 
 const truncate = (text: string, limit: number) => {
   if (!text) return "";
@@ -15,7 +16,7 @@ interface ComplaintCardProps {
 }
 
 export default function ComplaintCard({ complaint }: ComplaintCardProps) {
-  const navigate = useNavigate();
+  const router = useRouter();
   const { t } = useLanguage();
   const mediaUrls = (complaint.mediaUrl || "").split(',').map(u => u.trim()).filter(Boolean);
   const firstMedia = mediaUrls[0] || "";
@@ -33,7 +34,7 @@ export default function ComplaintCard({ complaint }: ComplaintCardProps) {
 
   const previewUrl = getPreviewUrl();
 
-  const [isMobile, setIsMobile] = React.useState(window.innerWidth < 768);
+  const [isMobile, setIsMobile] = React.useState(typeof window !== 'undefined' ? window.innerWidth < 768 : false);
 
   React.useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 768);
@@ -43,7 +44,7 @@ export default function ComplaintCard({ complaint }: ComplaintCardProps) {
 
   const handleCardClick = () => {
     if (!isMobile) {
-      navigate(`/complaint/${complaint.id}`);
+      router.push(`/complaint/${complaint.id}`);
     }
   };
 
@@ -73,12 +74,9 @@ export default function ComplaintCard({ complaint }: ComplaintCardProps) {
               loading="lazy" 
               crossOrigin="anonymous"
               onError={(e) => {
-                // If the thumbnail conversion fails, try the raw URL
                 if (isVideo) (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1590283603385-17ffb3a7f29f?auto=format&fit=crop&q=80&w=800';
               }}
             />
-            
-            {/* Play Indicator Overlay for Videos */}
             {isVideo && (
               <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                  <div className="w-12 h-12 bg-white/20 backdrop-blur-xl rounded-full flex items-center justify-center text-white shadow-2xl opacity-0 group-hover:opacity-100 transition-all scale-75 group-hover:scale-100">
@@ -86,17 +84,12 @@ export default function ComplaintCard({ complaint }: ComplaintCardProps) {
                  </div>
               </div>
             )}
-
-            {/* Editorial Gradient Overlay */}
             <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/40 to-transparent opacity-60 group-hover:opacity-80 transition-opacity" />
-
             <div className="absolute top-4 left-4 z-10">
               <span className="px-3 py-1 bg-white/90 backdrop-blur-xl text-gray-900 text-[8px] font-black rounded-full uppercase tracking-widest shadow-lg">
                 {t(complaint.category)}
               </span>
             </div>
-            
-            {/* Multiple Indicator */}
             {mediaUrls.length > 1 && (
               <div className="absolute top-4 right-4 bg-black/40 backdrop-blur-md px-2.5 py-1 rounded-full border border-white/10">
                  <span className="text-[8px] font-black text-white uppercase tracking-widest">+{mediaUrls.length - 1} {t('units') || 'Units'}</span>
@@ -105,8 +98,6 @@ export default function ComplaintCard({ complaint }: ComplaintCardProps) {
           </div>
         )}
       </div>
-      
-      {/* 📝 Content Section */}
       <div className="p-7">
         <div className="flex items-center gap-2 mb-4">
             <div className="flex items-center gap-1.5 text-brand-red">
@@ -118,15 +109,12 @@ export default function ComplaintCard({ complaint }: ComplaintCardProps) {
            <div className="w-1 h-1 rounded-full bg-gray-200"></div>
            <span className="text-[8px] font-black uppercase tracking-widest text-gray-400">● {complaint.status}</span>
         </div>
-        
         <h3 className="text-xl font-black text-gray-900 uppercase tracking-tight leading-tight mb-3 group-hover:text-brand-red transition-all duration-300">
           {truncate(complaint.title, 40)}
         </h3>
-        
         <p className="text-[13px] text-gray-500 font-medium leading-relaxed line-clamp-2 mb-8">
           {complaint.description}
         </p>
-        
         <div className="flex items-center justify-between pt-6 border-t border-gray-50">
            <div className="flex items-center gap-5 text-gray-400">
               <div className="flex items-center gap-1.5 group-hover:text-brand-red transition-colors">

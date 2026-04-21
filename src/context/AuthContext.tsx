@@ -1,67 +1,78 @@
+"use client";
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { onAuthStateChanged, signOut, User as FirebaseUser } from 'firebase/auth';
+import { auth, db } from '@/lib/firebaseConfig';
+import { doc, getDoc } from 'firebase/firestore';
 
 interface User {
-  id: number;
-  email: string;
+  uid: string;
+  email: string | null;
   username: string;
   is_admin: boolean;
+  isProfileSetup?: boolean;
 }
 
 interface AuthContextType {
   user: User | null;
-  token: string | null;
-  login: (token: string) => Promise<void>;
-  logout: () => void;
   loading: boolean;
+  logout: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
-  const [token, setToken] = useState<string | null>(localStorage.getItem('auth_token'));
   const [loading, setLoading] = useState(true);
 
-  const fetchUser = async (token: string) => {
-    try {
-      const res = await fetch('/api/auth/me', {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      if (res.ok) {
-        const userData = await res.json();
-        setUser(userData);
-      } else {
-        logout();
-      }
-    } catch (err) {
-      console.error("Fetch user failed", err);
-      logout();
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
-    if (token) {
-      fetchUser(token);
-    } else {
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      if (firebaseUser) {
+        // Fetch additional user data from Firestore
+        try {
+          const userDoc = await getDoc(doc(db, 'users', firebaseUser.uid));
+          if (userDoc.exists()) {
+            const data = userDoc.data();
+            setUser({
+              uid: firebaseUser.uid,
+              email: firebaseUser.email,
+              username: data.username || '',
+              is_admin: data.isAdmin || false,
+              isProfileSetup: data.isProfileSetup || false
+            });
+          } else {
+            // User exists in Auth but not in Firestore yet (during signup flow)
+            setUser({
+              uid: firebaseUser.uid,
+              email: firebaseUser.email,
+              username: '',
+              is_admin: false,
+              isProfileSetup: false
+            });
+          }
+        } catch (error) {
+          console.error("Error fetching user profile:", error);
+          setUser({
+            uid: firebaseUser.uid,
+            email: firebaseUser.email,
+            username: '',
+            is_admin: false
+          });
+        }
+      } else {
+        setUser(null);
+      }
       setLoading(false);
-    }
-  }, [token]);
+    });
 
-  const login = async (newToken: string) => {
-    localStorage.setItem('auth_token', newToken);
-    setToken(newToken);
-  };
+    return () => unsubscribe();
+  }, []);
 
-  const logout = () => {
-    localStorage.removeItem('auth_token');
-    setToken(null);
-    setUser(null);
+  const logout = async () => {
+    await signOut(auth);
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, login, logout, loading }}>
+    <AuthContext.Provider value={{ user, logout, loading }}>
       {children}
     </AuthContext.Provider>
   );
