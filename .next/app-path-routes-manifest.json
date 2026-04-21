@@ -1,0 +1,18 @@
+{
+  "/_not-found/page": "/_not-found",
+  "/api/complaints/[id]/comments/route": "/api/complaints/[id]/comments",
+  "/api/complaints/[id]/upvote/route": "/api/complaints/[id]/upvote",
+  "/api/complaints/route": "/api/complaints",
+  "/about/page": "/about",
+  "/complaint/[id]/page": "/complaint/[id]",
+  "/login/page": "/login",
+  "/privacy-policy/page": "/privacy-policy",
+  "/page": "/",
+  "/profile/page": "/profile",
+  "/report/page": "/report",
+  "/search/page": "/search",
+  "/setup-profile/page": "/setup-profile",
+  "/signup/page": "/signup",
+  "/success/page": "/success",
+  "/terms-of-service/page": "/terms-of-service"
+}

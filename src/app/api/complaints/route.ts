@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
-import { db } from '@/lib/firebaseAdmin';
+import { getDb } from '@/lib/firebaseAdmin';
+
+export const dynamic = 'force-dynamic';
 import { v2 as cloudinary } from 'cloudinary';
 import nodemailer from 'nodemailer';
 
@@ -34,6 +36,9 @@ export async function GET(req: Request) {
     const category = searchParams.get('category');
     const skip = parseInt(searchParams.get('skip') || '0');
     const limit = parseInt(searchParams.get('limit') || '10');
+
+    const db = getDb();
+    if (!db) return NextResponse.json({ error: "DB not initialized" }, { status: 500 });
 
     let query: any = db.collection('complaints').orderBy('createdAt', 'desc');
 
@@ -70,6 +75,9 @@ export async function POST(req: Request) {
     if (!file) {
       return NextResponse.json({ detail: "No file uploaded" }, { status: 400 });
     }
+
+    const db = getDb();
+    if (!db) return NextResponse.json({ error: "DB not initialized" }, { status: 500 });
 
     // 1. Upload to Cloudinary
     const arrayBuffer = await file.arrayBuffer();

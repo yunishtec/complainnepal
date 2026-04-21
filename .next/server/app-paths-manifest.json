@@ -1,5 +1,18 @@
 {
+  "/_not-found/page": "app/_not-found/page.js",
+  "/api/complaints/[id]/comments/route": "app/api/complaints/[id]/comments/route.js",
+  "/api/complaints/[id]/upvote/route": "app/api/complaints/[id]/upvote/route.js",
   "/api/complaints/route": "app/api/complaints/route.js",
+  "/about/page": "app/about/page.js",
+  "/complaint/[id]/page": "app/complaint/[id]/page.js",
+  "/login/page": "app/login/page.js",
+  "/privacy-policy/page": "app/privacy-policy/page.js",
   "/page": "app/page.js",
-  "/report/page": "app/report/page.js"
+  "/profile/page": "app/profile/page.js",
+  "/report/page": "app/report/page.js",
+  "/search/page": "app/search/page.js",
+  "/setup-profile/page": "app/setup-profile/page.js",
+  "/signup/page": "app/signup/page.js",
+  "/success/page": "app/success/page.js",
+  "/terms-of-service/page": "app/terms-of-service/page.js"
 }

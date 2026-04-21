@@ -26,10 +26,10 @@ export default function ComplaintDetail() {
         // For now we fetch all and find the ID
         const res = await fetch(`/api/complaints`);
         const all: Complaint[] = await res.json();
-        const found = all.find(c => String(c.id) === id);
+        const found = all.find(c => c.id === id);
         if (found) {
           setComplaint(found);
-          const comms = await fetchComments(Number(id));
+          const comms = await fetchComments(id);
           setComments(comms);
         }
       } catch (err) {
@@ -46,7 +46,7 @@ export default function ComplaintDetail() {
     if (!newComment.trim() || isSubmitting) return;
     setIsSubmitting(true);
     try {
-      const added = await addComment(Number(id), newComment);
+      const added = await addComment(id, newComment);
       setComments(prev => [added, ...prev]);
       setNewComment('');
     } catch (err) { console.error(err); }
@@ -148,7 +148,7 @@ export default function ComplaintDetail() {
                        <div className="w-8 h-8 rounded-full bg-gray-50 flex-shrink-0 flex items-center justify-center text-[10px] font-black">CP</div>
                        <div>
                           <div className="flex items-center gap-2 mb-1">
-                             <span className="text-[10px] font-black">Citizen #{c.id % 999}</span>
+                             <span className="text-[10px] font-black">Citizen #{c.id.substring(0, 5)}</span>
                              <span className="text-[8px] font-bold text-gray-300 uppercase">{new Date(c.createdAt).toLocaleDateString()}</span>
                           </div>
                           <p className="text-sm text-gray-600 font-medium">{c.text}</p>

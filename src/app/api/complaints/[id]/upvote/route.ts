@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
-import { db } from '@/lib/firebaseAdmin';
+import { getDb } from '@/lib/firebaseAdmin';
+
+export const dynamic = 'force-dynamic';
 import * as admin from 'firebase-admin';
 
 export async function POST(
@@ -8,6 +10,8 @@ export async function POST(
 ) {
   try {
     const { id } = await params;
+    const db = getDb();
+    if (!db) return NextResponse.json({ error: "DB not initialized" }, { status: 500 });
 
     const complaintRef = db.collection('complaints').doc(id);
     await complaintRef.update({
@@ -29,6 +33,8 @@ export async function DELETE(
 ) {
   try {
     const { id } = await params;
+    const db = getDb();
+    if (!db) return NextResponse.json({ error: "DB not initialized" }, { status: 500 });
 
     const complaintRef = db.collection('complaints').doc(id);
     await complaintRef.update({

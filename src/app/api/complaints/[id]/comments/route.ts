@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
-import { db } from '@/lib/firebaseAdmin';
+import { getDb } from '@/lib/firebaseAdmin';
+
+export const dynamic = 'force-dynamic';
 
 export async function GET(
   req: Request,
@@ -7,6 +9,8 @@ export async function GET(
 ) {
   try {
     const { id } = await params;
+    const db = getDb();
+    if (!db) return NextResponse.json({ error: "DB not initialized" }, { status: 500 });
 
     const snapshot = await db.collection('complaints').doc(id).collection('comments').orderBy('createdAt', 'desc').get();
     const comments = snapshot.docs.map(doc => ({
@@ -32,6 +36,9 @@ export async function POST(
     if (!text) {
       return NextResponse.json({ detail: "Comment text is required" }, { status: 400 });
     }
+
+    const db = getDb();
+    if (!db) return NextResponse.json({ error: "DB not initialized" }, { status: 500 });
 
     const commentData = {
       text,
