@@ -16,6 +16,7 @@ const SearchPage = lazy(() => import('./pages/Search'));
 const Login = lazy(() => import('./pages/Login'));
 const Signup = lazy(() => import('./pages/Signup'));
 const Profile = lazy(() => import('./pages/Profile'));
+const SetupProfile = lazy(() => import('./pages/SetupProfile'));
 
 import { useLanguage, LanguageProvider } from './context/LanguageContext';
 import { UploadProvider, useUpload } from './context/UploadContext';
@@ -219,6 +220,7 @@ function AppContent() {
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
             <Route path="/profile" element={<Profile />} />
+            <Route path="/setup-profile" element={<SetupProfile />} />
             <Route path="/privacy-policy" element={<PrivacyPolicy />} />
             <Route path="/terms-of-service" element={<TermsOfService />} />
           </Routes>
