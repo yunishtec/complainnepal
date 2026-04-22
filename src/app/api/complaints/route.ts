@@ -47,10 +47,19 @@ export async function GET(req: Request) {
     }
 
     const snapshot = await query.offset(skip).limit(limit).get();
-    const complaints = snapshot.docs.map((doc: any) => ({
-      id: doc.id,
-      ...doc.data(),
-    }));
+    const complaints = snapshot.docs.map((doc: any) => {
+      const data = doc.data();
+      // Backward compatibility: Convert single string mediaUrl to array if needed
+      let mediaUrls = data.mediaUrls || [];
+      if (!mediaUrls.length && data.mediaUrl) {
+        mediaUrls = [data.mediaUrl];
+      }
+      return {
+        id: doc.id,
+        ...data,
+        mediaUrls,
+      };
+    });
 
     return NextResponse.json(complaints);
   } catch (error: any) {
@@ -58,7 +67,6 @@ export async function GET(req: Request) {
     return NextResponse.json({ 
       detail: "Internal Server Error", 
       error: error.message,
-      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
     }, { status: 500 });
   }
 }
@@ -70,30 +78,37 @@ export async function POST(req: Request) {
     const description = formData.get('description') as string;
     const category = formData.get('category') as string;
     const location = formData.get('location') as string;
-    const file = formData.get('file') as File;
+    const userId = formData.get('userId') as string;
+    const userEmail = formData.get('userEmail') as string;
+    const userName = formData.get('userName') as string;
+    
+    // Get all files from the 'files' field
+    const files = formData.getAll('files') as File[];
 
-    if (!file) {
-      return NextResponse.json({ detail: "No file uploaded" }, { status: 400 });
+    if (!files.length) {
+      return NextResponse.json({ detail: "No files uploaded" }, { status: 400 });
     }
 
     const db = getDb();
     if (!db) return NextResponse.json({ error: "DB not initialized" }, { status: 500 });
 
-    // 1. Upload to Cloudinary
-    const arrayBuffer = await file.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
-    
-    const uploadResponse: any = await new Promise((resolve, reject) => {
-      cloudinary.uploader.upload_stream({
-        resource_type: "auto",
-        folder: "complain-nepal",
-      }, (error, result) => {
-        if (error) reject(error);
-        else resolve(result);
-      }).end(buffer);
+    // 1. Upload ALL to Cloudinary in parallel
+    const uploadPromises = files.map(async (file) => {
+      const arrayBuffer = await file.arrayBuffer();
+      const buffer = Buffer.from(arrayBuffer);
+      
+      return new Promise<string>((resolve, reject) => {
+        cloudinary.uploader.upload_stream({
+          resource_type: "auto",
+          folder: "complain-nepal",
+        }, (error, result) => {
+          if (error) reject(error);
+          else resolve(result?.secure_url || '');
+        }).end(buffer);
+      });
     });
 
-    const mediaUrl = uploadResponse.secure_url;
+    const mediaUrls = await Promise.all(uploadPromises);
 
     // 2. Save to Firestore
     const complaintData = {
@@ -101,7 +116,10 @@ export async function POST(req: Request) {
       description,
       category,
       location,
-      mediaUrl,
+      mediaUrls: mediaUrls.filter(u => u), // Remove empty strings if any failed
+      userId,
+      userEmail,
+      userName,
       status: 'submitted',
       upvotes: 0,
       createdAt: new Date().toISOString(),

@@ -12,8 +12,22 @@ const firebaseConfig = {
 };
 
 // Initialize Firebase
-const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
+let app;
+let auth: any;
+let db: any;
+
+if (firebaseConfig.apiKey && typeof window !== 'undefined') {
+  app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
+  auth = getAuth(app);
+  db = getFirestore(app);
+} else {
+  // Safe fallbacks for build-time or missing keys
+  app = null;
+  auth = {
+    onAuthStateChanged: () => () => {},
+    signOut: async () => {},
+  } as any;
+  db = null;
+}
 
 export { app, auth, db };

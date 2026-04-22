@@ -4,11 +4,13 @@ import { useRouter } from 'next/navigation';
 import { Trash2, Route, Droplets, Zap, Camera, Send } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
 import { useUpload } from '@/context/UploadContext';
+import { useAuth } from '@/context/AuthContext';
 
 export default function ReportPage() {
   const router = useRouter();
   const { t } = useLanguage();
   const { startUpload } = useUpload();
+  const { user } = useAuth();
   
   const [formData, setFormData] = useState({
     title: '',
@@ -16,27 +18,52 @@ export default function ReportPage() {
     category: 'garbage',
     location: '',
   });
-  const [file, setFile] = useState<File | null>(null);
-  const [preview, setPreview] = useState<string | null>(null);
+  
+  const [files, setFiles] = useState<File[]>([]);
+  const [previews, setPreviews] = useState<string[]>([]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedFile = e.target.files?.[0];
-    if (selectedFile) {
-      setFile(selectedFile);
-      setPreview(URL.createObjectURL(selectedFile));
+    const selectedFiles = Array.from(e.target.files || []);
+    if (files.length + selectedFiles.length > 5) {
+      alert("You can only upload up to 5 photos");
+      return;
     }
+
+    const newFiles = [...files, ...selectedFiles];
+    const newPreviews = [...previews, ...selectedFiles.map(f => URL.createObjectURL(f))];
+    
+    setFiles(newFiles);
+    setPreviews(newPreviews);
+  };
+
+  const removeFile = (index: number) => {
+    setFiles(prev => prev.filter((_, i) => i !== index));
+    setPreviews(prev => prev.filter((_, i) => i !== index));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!file) return;
+    if (files.length === 0) return;
+
+    if (!user) {
+      alert("Please login first to submit a report");
+      router.push('/login');
+      return;
+    }
 
     const data = new FormData();
     data.append('title', formData.title);
     data.append('description', formData.description);
     data.append('category', formData.category);
     data.append('location', formData.location);
-    data.append('file', file);
+    data.append('userId', user.uid);
+    data.append('userEmail', user.email || '');
+    data.append('userName', user.displayName || '');
+    
+    // Append each file to the 'files' field
+    files.forEach(f => {
+      data.append('files', f);
+    });
 
     startUpload(data, formData.title);
     router.push('/success');
@@ -145,27 +172,35 @@ export default function ReportPage() {
                 <h3 className="font-black uppercase tracking-tight text-gray-900">EVIDENCE</h3>
               </div>
 
-              <div className="relative w-48 aspect-square bg-[#F8FAFC] rounded-[32px] border-2 border-dashed border-gray-200 flex flex-col items-center justify-center overflow-hidden transition-all group hover:border-brand-red/20">
-                {preview ? (
-                  <>
-                    <img src={preview} className="w-full h-full object-cover" alt="Preview" />
-                    <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all">
-                      <Camera className="text-white" size={32} />
+              <div className="grid grid-cols-2 md:grid-cols-5 gap-6">
+                {previews.map((src, idx) => (
+                  <div key={idx} className="relative aspect-square rounded-[24px] overflow-hidden border border-gray-100 group">
+                    <img src={src} className="w-full h-full object-cover" alt={`Preview ${idx}`} />
+                    <button 
+                      type="button"
+                      onClick={() => removeFile(idx)}
+                      className="absolute top-2 right-2 w-8 h-8 bg-black/50 backdrop-blur-md rounded-full flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-all hover:bg-brand-red"
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
+                ))}
+                
+                {files.length < 5 && (
+                  <div className="relative aspect-square bg-[#F8FAFC] rounded-[24px] border-2 border-dashed border-gray-200 flex flex-col items-center justify-center overflow-hidden transition-all group hover:border-brand-red/20 cursor-pointer">
+                    <div className="flex flex-col items-center gap-3">
+                      <Camera size={24} className="text-gray-300" />
+                      <span className="text-[8px] font-black text-gray-300 uppercase tracking-widest">{files.length}/5 photos</span>
                     </div>
-                  </>
-                ) : (
-                  <div className="flex flex-col items-center gap-3">
-                    <Camera size={24} className="text-gray-300" />
-                    <span className="text-[8px] font-black text-gray-300 uppercase tracking-widest">0/3</span>
+                    <input 
+                      type="file" 
+                      accept="image/*,video/*"
+                      multiple
+                      className="absolute inset-0 opacity-0 cursor-pointer"
+                      onChange={handleFileChange}
+                    />
                   </div>
                 )}
-                <input 
-                  type="file" 
-                  accept="image/*,video/*"
-                  required
-                  className="absolute inset-0 opacity-0 cursor-pointer"
-                  onChange={handleFileChange}
-                />
               </div>
             </div>
 

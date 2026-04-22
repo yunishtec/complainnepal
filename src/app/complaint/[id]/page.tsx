@@ -70,29 +70,54 @@ export default function ComplaintDetail() {
     );
   }
 
-  const mediaUrls = (complaint.mediaUrl || "").split(',').map(u => u.trim()).filter(Boolean);
+  const mediaUrls = Array.isArray(complaint.mediaUrls) ? complaint.mediaUrls : [];
 
   return (
     <div className="min-h-screen bg-white">
       {/* Header */}
-      <div className="px-6 py-8 flex items-center justify-between sticky top-0 bg-white z-50 border-b border-gray-50">
+      <div className="px-6 py-8 flex items-center justify-between sticky top-0 bg-white z-[60] border-b border-gray-50">
         <button onClick={() => router.back()} className="text-gray-400 hover:text-gray-900 transition-all">
           <ArrowLeft size={24} />
         </button>
         <span className="text-[10px] font-black uppercase tracking-widest">Report Detail</span>
-        <div className="w-6"></div>
+        <Share2 size={20} className="text-gray-400" />
       </div>
 
-      <main className="max-w-2xl mx-auto pb-20">
-        {/* Media */}
-        <div className="aspect-[4/5] bg-black overflow-hidden sm:rounded-b-[40px]">
-           {mediaUrls.length > 0 ? (
-              <img src={mediaUrls[0]} className="w-full h-full object-cover" alt="Complaint media" />
-           ) : (
-              <div className="w-full h-full flex items-center justify-center text-gray-800">
-                 No Media Found
+      <main className="max-w-4xl mx-auto pb-20">
+        {/* Gallery Section */}
+        <div className="w-full bg-black sm:rounded-b-[40px] overflow-hidden">
+          {mediaUrls.length > 0 ? (
+            <div className="flex overflow-x-auto snap-x snap-mandatory no-scrollbar scroll-smooth">
+              {mediaUrls.map((url, idx) => (
+                <div key={idx} className="flex-shrink-0 w-full aspect-[4/5] sm:aspect-video snap-center flex items-center justify-center bg-zinc-900">
+                  {url.match(/\.(mp4|webm|ogg|mov)$|^.*cloudinary.*\/video\/upload\/.*$/i) ? (
+                    <video 
+                      src={url} 
+                      controls 
+                      className="w-full h-full object-contain"
+                    />
+                  ) : (
+                    <img src={url} className="w-full h-full object-cover" alt={`Evidence ${idx + 1}`} />
+                  )}
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="aspect-[4/5] flex items-center justify-center text-gray-800">
+              No Media Found
+            </div>
+          )}
+          
+          {mediaUrls.length > 1 && (
+            <div className="px-6 py-4 bg-zinc-900 flex items-center justify-between">
+              <div className="flex gap-1.5">
+                {mediaUrls.map((_, i) => (
+                  <div key={i} className="w-1.5 h-1.5 rounded-full bg-white/20" />
+                ))}
               </div>
-           )}
+              <span className="text-[10px] font-black text-white/50 uppercase tracking-widest">Swipe for details ({mediaUrls.length} photos)</span>
+            </div>
+          )}
         </div>
 
         {/* Content */}

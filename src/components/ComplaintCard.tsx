@@ -18,7 +18,9 @@ interface ComplaintCardProps {
 export default function ComplaintCard({ complaint }: ComplaintCardProps) {
   const router = useRouter();
   const { t } = useLanguage();
-  const mediaUrls = (complaint.mediaUrl || "").split(',').map(u => u.trim()).filter(Boolean);
+  
+  // Handle both new array format and legacy string format
+  const mediaUrls = Array.isArray(complaint.mediaUrls) ? complaint.mediaUrls : [];
   const firstMedia = mediaUrls[0] || "";
   
   const isCloudinary = firstMedia.includes('cloudinary');

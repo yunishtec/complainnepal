@@ -3,45 +3,51 @@ import * as admin from 'firebase-admin';
 // This function safely initializes and returns the Firebase Admin instance
 function getAdminApp() {
   if (!admin.apps.length) {
-    let key = process.env.FIREBASE_PRIVATE_KEY;
-    if (key && key.startsWith('"') && key.endsWith('"')) {
-      key = key.substring(1, key.length - 1);
+    let rawKey = process.env.FIREBASE_PRIVATE_KEY;
+    let finalKey = '';
+    
+    if (rawKey) {
+      console.log('⚡ Running Nuclear PEM Fix...');
+      
+      // 1. Strip all newlines and spaces to get the raw content
+      const content = rawKey.split(/\\n|\n|\r/)
+        .map(l => l.trim())
+        .filter(l => l && !l.includes('---'))
+        .join('');
+      
+      // 2. Clean EVERYTHING except valid base64 characters
+      const cleanedBase64 = content.replace(/[^A-Za-z0-9+/=]/g, '');
+      
+      // 3. Rebuild with rigid PEM structure
+      finalKey = `-----BEGIN PRIVATE KEY-----\n${cleanedBase64}\n-----END PRIVATE KEY-----\n`;
     }
-    const privateKey = key ? key.replace(/\\n/g, '\n') : undefined;
 
     const serviceAccount = {
       projectId: process.env.FIREBASE_PROJECT_ID?.trim(),
       clientEmail: process.env.FIREBASE_CLIENT_EMAIL?.trim(),
-      privateKey: privateKey,
+      privateKey: finalKey,
     };
 
     try {
       admin.initializeApp({
         credential: admin.credential.cert(serviceAccount as admin.ServiceAccount),
       });
-      console.log('🔥 Firebase Admin Initialized (Lazy)');
-    } catch (error) {
-      console.error('❌ Firebase Admin Lazy Init Error:', error);
-      // We don't throw here to avoid crashing the Next.js build worker 
-      // when it statically analyzes the file.
+      console.log('✅ Firebase Admin Initialized (Nuclear Fix)');
+    } catch (error: any) {
+      console.error('❌ Firebase Admin Init Error:', error.message);
     }
   }
   return admin.apps[0];
 }
 
-// Lazy Getters for database and auth
 export const getDb = () => {
   const app = getAdminApp();
-  if (!app) return null as any; // Fail-safe for build time
+  if (!app) return null;
   return admin.firestore();
 };
 
 export const getAuth = () => {
   const app = getAdminApp();
-  if (!app) return null as any; // Fail-safe for build time
+  if (!app) return null;
   return admin.auth();
 };
-
-// Also export the original constants for backward compatibility where possible,
-// but they might still execute at top level. 
-// Actually, it's better to remove them to force the new pattern.

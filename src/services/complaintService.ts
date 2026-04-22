@@ -13,11 +13,14 @@ export interface Complaint {
   description: string;
   category: string;
   location: string;
-  mediaUrl: string;
+  mediaUrls: string[];
   status: 'submitted' | 'in-progress' | 'resolved';
   upvotes: number;
   commentCount: number;
   createdAt: string;
+  userId?: string;
+  userEmail?: string;
+  userName?: string;
 }
 
 export const fetchComplaints = async (skip: number = 0, limit: number = 10, category?: string, searchTerm?: string): Promise<Complaint[]> => {

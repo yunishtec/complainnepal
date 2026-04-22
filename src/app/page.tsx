@@ -433,38 +433,42 @@ export default function Home() {
 
       {/* 🚀 DESKTOP HERO */}
       <div className="hidden md:block">
-        <section className="relative min-h-[90vh] flex flex-col items-center justify-center overflow-hidden bg-white">
-          {/* Background Text */}
-          <div className="absolute inset-0 flex items-center justify-center -z-10 select-none">
-            <h1 className="text-[25vw] font-black text-[#003893]/5 tracking-tighter uppercase">
+        <section className="relative min-h-[90vh] flex flex-col items-center justify-center overflow-hidden bg-white px-12">
+          {/* Background 'REPORTER' Text */}
+          <div className="absolute inset-0 flex items-center justify-center -z-10 select-none pointer-events-none">
+            <h1 className="text-[30vw] font-[1000] text-[#4B73B1] tracking-tighter uppercase leading-none">
               REPORTER
             </h1>
           </div>
 
-          <div className="relative z-20 w-full max-w-5xl flex flex-col items-center">
-            <div className="relative w-full aspect-[16/9] md:aspect-auto md:h-[60vh] flex items-center justify-center">
+          <div className="relative z-20 w-full max-w-7xl flex flex-col items-center min-h-[60vh] justify-center">
+            {/* 'I'm Civic' Text Layer - Positioned Higher */}
+            <div className="absolute top-[35%] -translate-y-1/2 left-0 w-full flex justify-between items-center px-6 pointer-events-none z-0">
+              <span className="font-serif italic text-[160px] text-gray-900 leading-none">I'm</span>
+              <span className="font-serif italic text-[160px] text-brand-red leading-none">Civic</span>
+            </div>
+
+            {/* Central Portrait & Button */}
+            <div className="relative flex flex-col items-center pt-20">
               <img 
                 src="/images/portrait.png" 
                 alt="Representative" 
-                className="h-full w-auto object-contain drop-shadow-2xl" 
+                className="h-[75vh] w-auto object-contain drop-shadow-2xl z-10" 
               />
               
-              {/* Centered Button on Hero */}
-              <div className="absolute inset-0 flex items-center justify-center">
-                <motion.button 
-                  onClick={() => router.push('/report')}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  className="bg-brand-red px-12 py-5 rounded-3xl font-black text-xl uppercase tracking-[0.2em] text-white shadow-2xl shadow-brand-red/40 hover:bg-brand-red/90 transition-all"
-                >
-                  {t('letsReport')}
-                </motion.button>
-              </div>
+              <motion.button 
+                onClick={() => router.push('/report')}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="absolute bottom-12 left-1/2 -translate-x-1/2 z-20 bg-brand-red px-14 py-5 rounded-full font-black text-sm uppercase tracking-[0.3em] text-white shadow-2xl shadow-brand-red/40 hover:bg-brand-red/90 transition-all border-none"
+              >
+                {t('letsReport')}
+              </motion.button>
             </div>
           </div>
         </section>
 
-        <section className="py-20 px-12 max-w-7xl mx-auto">
+        <section id="recent-reports" className="py-20 px-12 max-w-7xl mx-auto">
           <div className="flex flex-col items-center mb-24 text-center">
               <div className="w-12 h-1 bg-brand-red mb-8"></div>
               <h3 className="text-6xl font-black text-gray-900 tracking-tighter uppercase mb-4">{t('recentReports')}</h3>
